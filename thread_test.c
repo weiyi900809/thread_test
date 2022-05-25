@@ -189,6 +189,9 @@ int main() {
 			/*getchar();
 			fgets(data, 1024, stdin);*/ 
 			fgets(file_data, 1024, f);
+			if(file_data[strlen(file_data) - 1] == '\n'){
+				file_data[strlen(file_data) - 1] = '\0';
+			}
 			strcpy(data,file_data);
 			puts(data);
 
@@ -238,6 +241,9 @@ int main() {
 			/*getchar();
 			fgets(data, 1024, stdin);*/
 			fgets(file_data, 1024, f);
+			if(file_data[strlen(file_data) - 1] == '\n'){
+				file_data[strlen(file_data) - 1] = '\0';
+			}
 			strcpy(data,file_data);
 			puts(data);
 				
@@ -318,6 +324,10 @@ int main() {
 			/*getchar();
 			fgets(data, 1024, stdin);*/
 			fgets(file_data, 1024, f);
+			if(file_data[strlen(file_data) - 1] == '\n'){
+				file_data[strlen(file_data) - 1] = '\0';
+			}
+    			
 			strcpy(data,file_data);
 			puts(data);
 			
