@@ -1,4 +1,5 @@
 import urllib.request as req
+import time
 import bs4 
 def write_command_func():
 	
@@ -19,5 +20,17 @@ def write_command_func():
 			print(title.string, file=f)	
 	f.close()	
 if __name__ == '__main__':
-    write_command_func()
+
+    time_counter = 0
+    while(1):
+    
+    	print(time_counter)
+    	if(time_counter == 60):
+    		write_command_func()
+    		time_counter = 0
+    	
+    	time.sleep(1)
+    	time_counter+=1
+    
+    
 
