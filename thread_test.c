@@ -9,12 +9,12 @@
 #include <sys/shm.h>
 
 #include "msg_process.h"
+//
+#define NUM_BOTS 5
 
-#define NUM_THREADS 5
 
-
-tmsg_buffer* receive_buff[NUM_THREADS][NUM_THREADS] ;
-tmsg_element* receive_event[NUM_THREADS][NUM_THREADS] ;
+tmsg_buffer* receive_buff[NUM_BOTS][NUM_BOTS] ;
+tmsg_element* receive_event[NUM_BOTS][NUM_BOTS] ;
 
 typedef struct  transmit{
 
@@ -22,42 +22,53 @@ long from;
 long to;
 	
 }Transmit; 
+
+typedef struct  set{
+
+long num_1;//0 4 
+long num_2;//1 5
+long num_3;//2 6
+long num_4;//3 7
+	
+}Set; 
   
 
-int thread_command[NUM_THREADS]; //
-int send_command[NUM_THREADS][NUM_THREADS]; 
+int bot_command[NUM_BOTS]; 
+int send_command[NUM_BOTS][NUM_BOTS]; 
 
-int thread_transmit_target[NUM_THREADS][NUM_THREADS];
-int thread_peer_list[NUM_THREADS][NUM_THREADS];
-int thread_receive_signal[NUM_THREADS];
-int thread_send_signal[NUM_THREADS];
+int thread_transmit_target[NUM_BOTS][NUM_BOTS];
+int bot_peer_list[NUM_BOTS][NUM_BOTS];
+int thread_receive_signal[NUM_BOTS];
+int thread_send_signal[NUM_BOTS];
 
-int receive_tunnel_ready_signal[NUM_THREADS][NUM_THREADS];
-int send_tunnel_ready_signal[NUM_THREADS][NUM_THREADS];
-//int thread_time_signal[NUM_THREADS];
+int receive_tunnel_ready_signal[NUM_BOTS][NUM_BOTS];
+int send_tunnel_ready_signal[NUM_BOTS][NUM_BOTS];
 
-int thread_send_to[NUM_THREADS];
-int thread_receive_from[NUM_THREADS];
-char send_message[NUM_THREADS][1024];
-char receive_message[NUM_THREADS][1024];
-char receive_func_message[NUM_THREADS][NUM_THREADS][1024];
 
-char command_buff[NUM_THREADS][1024];
+int thread_send_to[NUM_BOTS];
+int thread_receive_from[NUM_BOTS];
+char send_message[NUM_BOTS][1024];
+char receive_message[NUM_BOTS][1024];
+char receive_func_message[NUM_BOTS][NUM_BOTS][1024];
+
+char command_buff[NUM_BOTS][1024];
 
 char file_data[10][1024]; 
 int CPP_terminate_signal=0;
-int tunnel_work_over[NUM_THREADS][NUM_THREADS];
-int receive_work_over=0;
-int request_work_over=0;
-pthread_mutex_t mutex[NUM_THREADS][NUM_THREADS];
+int tunnel_work_over[NUM_BOTS][NUM_BOTS];
+int bot_work_over[NUM_BOTS];
 
-pthread_t receive[NUM_THREADS][NUM_THREADS];
-pthread_t send[NUM_THREADS][NUM_THREADS];
 
-pthread_cond_t  receive_butter_empty[NUM_THREADS][NUM_THREADS];//signal of  buffer is empty 
-pthread_cond_t  request_empty[NUM_THREADS];
+pthread_mutex_t mutex[NUM_BOTS][NUM_BOTS];
 
-int buffer_not_empty[NUM_THREADS]={0,0,0,0};//signal of  buffer is not empty 
+pthread_t receive[NUM_BOTS][NUM_BOTS];
+pthread_t send[NUM_BOTS][NUM_BOTS];
+
+pthread_cond_t  receive_butter_empty[NUM_BOTS][NUM_BOTS];//signal of  buffer is empty 
+int sum_of_num_of_peerlist=0;
+int transmit_times=0;
+
+int buffer_not_empty[NUM_BOTS]={0,0,0,0};//signal of  buffer is not empty 
 
 char make_peer_list_message(char message[],int tid){
 
@@ -72,12 +83,12 @@ char make_peer_list_message(char message[],int tid){
    strcpy(text, " my peer list have: ");
    strncat(message,text ,strlen(text));
   
-   for(i=0;i<NUM_THREADS;i++){
-	   if(thread_peer_list[tid][i]!= -1 ){
-		   sprintf(text, "%d", thread_peer_list[tid][i]);  
+   for(i=0;i<NUM_BOTS;i++){
+	   if(bot_peer_list[tid][i]!= -1 ){
+		   sprintf(text, "%d", bot_peer_list[tid][i]);  
 		   
 		   strncat(message,text ,1);
-		   if(thread_peer_list[tid][i+1]!= -1 ){
+		   if(bot_peer_list[tid][i+1]!= -1 ){
 		   strcpy(text, ",");
 		   strncat(message,text ,1);
 		   }
@@ -95,7 +106,7 @@ char make_peer_list_message(char message[],int tid){
 
 void *CPP_func(){
     long time_counter =5;	
-    int bot_command;
+    int master_command;
     int i=0;
     FILE* f;
     printf("Hello There! I am CPP\n");
@@ -183,7 +194,7 @@ void *handle_send_func(void *transmit_information){
 		     	
 		     	
 		     	
-		     	//pthread_cond_signal(&request_empty[tid]);
+		
 		     	
 		     	
 			break;
@@ -207,8 +218,9 @@ void *handle_send_func(void *transmit_information){
 	    
 	    strcpy(message_peer_list,"");
 	    send_tunnel_ready_signal[information->from][information->to] =0; 
+	    printf("send tunnel %ld-%ld work over\n", information->from , information->to);
 	    send_command[information->from][information->to] = 0;
-		     	
+	         	
 		     	
     	
     	}
@@ -254,12 +266,10 @@ void *handle_receive_func(void *transmit_information){
 	    	switch(behavior_request) {
 				
 				case 1:
-					
-					
+	
 					send_command[information->to][information->from]=1;
 					send_tunnel_ready_signal[information->to][information->from]=1;
-				
-	     				
+
 					break;
 				case 2:
 					
@@ -274,13 +284,14 @@ void *handle_receive_func(void *transmit_information){
     	}
     	
 
-	sleep(1);
+	
 	behavior_request=0;				
 	strcpy(receive_func_message[information->from][information->to],"");
 	strcpy(func_message,"");
 	receive_tunnel_ready_signal[information->from][information->to] = 0 ; 
+	printf("receive tunnel %ld-%ld work over\n", information->from , information->to);
 	pthread_cond_signal(&receive_butter_empty[information->from][information->to]);
-	
+	transmit_times--;
 	}
 	
 	
@@ -293,58 +304,53 @@ void *handle_receive_func(void *transmit_information){
     pthread_exit(NULL);	
 
 }
-void *thread_func(void *threadid) {
-    long tid;
+void bot_func(long tid){
+
+
     int i,j;
-    int rc;
-    
-    tid = (long)threadid;
-    
-    
-    
-    printf("Hello There! I am thread %ld, my pthread ID - %lu\n", tid, pthread_self()-1);
-    while(1){
+    printf("Hello There! I am thread %ld\n", tid);
+    while(1){//    while(bot_work_over[tid] != 1){
 		
 		sleep(0.5);
 		
 		
-		switch(thread_command[tid]) {
+		switch(bot_command[tid]) {
 			
 			case 1:
 				printf("peer list of thread %ld have:", tid);
-				for(i=0;i<NUM_THREADS;i++){
-					if(thread_peer_list[tid][i]!= -1)
-						printf("%ld ", thread_peer_list[tid][i]);
+				for(i=0;i<NUM_BOTS;i++){
+					if(bot_peer_list[tid][i]!= -1)
+						printf("%ld ", bot_peer_list[tid][i]);
 				}
 				puts("");
-				thread_command[tid]=99;
+				bot_command[tid]=99;
 				
 				break;
 			case 2:
 				
-				if(send_message[tid] != NULL && thread_peer_list[tid][0] != -1 ) {
+				if(send_message[tid] != NULL && bot_peer_list[tid][0] != -1 ) {
 				
 	     			printf("thread %ld , transmit_data: %s , peerlist:", tid,send_message[tid]);
 	     			
-	     			for(i=0;i<NUM_THREADS;i++){
-	     				if(thread_peer_list[tid][i]!= -1 ){
-	     					printf(" %d ", thread_peer_list[tid][i]);
+	     			for(i=0;i<NUM_BOTS;i++){
+	     				if(bot_peer_list[tid][i]!= -1 ){
+	     					printf(" %d ", bot_peer_list[tid][i]);
 	     				}
 	     			}
 	     			puts("");
 	     			
-	     			for(i=0;i<NUM_THREADS;i++){
+	     			for(i=0;i<NUM_BOTS;i++){
 	     				
-	     				if(thread_peer_list[tid][i]!= -1  ){ 
+	     				if(bot_peer_list[tid][i]!= -1  ){ 
 	     					
-	     					while(receive_tunnel_ready_signal[tid][thread_peer_list[tid][i]] ==1 ){
-					     		pthread_cond_wait(&receive_butter_empty[tid][thread_peer_list[tid][i]],&mutex[tid][thread_peer_list[tid][i]]);	
+	     					while(receive_tunnel_ready_signal[tid][bot_peer_list[tid][i]] ==1 ){
+					     		pthread_cond_wait(&receive_butter_empty[tid][bot_peer_list[tid][i]],&mutex[tid][bot_peer_list[tid][i]]);	
 					     	}
 						
 	     					
-	     					strcpy(receive_func_message[tid][thread_peer_list[tid][i]], send_message[tid]);//
+	     					strcpy(receive_func_message[tid][bot_peer_list[tid][i]], send_message[tid]);//
 	     					
-	     					receive_tunnel_ready_signal[tid][thread_peer_list[tid][i]] = 1 ;
+	     					receive_tunnel_ready_signal[tid][bot_peer_list[tid][i]] = 1 ;
 	     					
 	     							
 	     				}
@@ -355,97 +361,178 @@ void *thread_func(void *threadid) {
 	     			
 	     			
 			 	}
-			 	thread_command[tid]=99;
+			 	bot_command[tid]=99;
 			 	
 				break;
 			case 3:
 				
-	     			thread_command[tid]=99;
+	     			bot_command[tid]=99;
 				break;	
 				
 			case 4:
 				
-	     			thread_command[tid]=99;
+	     			bot_command[tid]=99;
 	     			
 				break;		
 			case 0:
 				
 				break;
 			case (-1):
+				printf(" thread %ld terminated !\n", tid);
+				
 				break;	
 		}
-		if(thread_command[tid]==-1) {
+		if(bot_command[tid]==-1) {
 			
-			printf(" thread %ld terminated !\n", tid);
-			for (i = 0; i < NUM_THREADS; i++){
-	    		for (j = 0; j < NUM_THREADS; j++){
-	    		tunnel_work_over[i][j]=1;
-	    		}
-	    		}
+			
 			break;
 		}
 		
 		
 	}
+
+}
+void *thread_func(void *threadid) {// 1 thread = 4 bots
+    long tid;
+    int i,j;
+    int rc;
+    //Set 
+    tid = (long)threadid;
+    
+    
+    
+    printf("Hello There! I am thread %ld, my pthread ID - %lu\n", tid, pthread_self()-1);
+    while(bot_work_over[tid] != 1){
+		
+		sleep(0.5);
+		
+		
+		switch(bot_command[tid]) {
+			
+			case 1:
+				printf("peer list of thread %ld have:", tid);
+				for(i=0;i<NUM_BOTS;i++){
+					if(bot_peer_list[tid][i]!= -1)
+						printf("%ld ", bot_peer_list[tid][i]);
+				}
+				puts("");
+				bot_command[tid]=99;
+				
+				break;
+			case 2:
+				
+				
+				if(send_message[tid] != NULL && bot_peer_list[tid][0] != -1 ) {
+				
+	     			printf("thread %ld , transmit_data: %s , peerlist:", tid,send_message[tid]);
+	     			
+	     			for(i=0;i<NUM_BOTS;i++){
+	     				if(bot_peer_list[tid][i]!= -1 ){
+	     					printf(" %d ", bot_peer_list[tid][i]);
+	     				}
+	     			}
+	     			puts("");
+	     			
+	     			for(i=0;i<NUM_BOTS;i++){
+	     				
+	     				if(bot_peer_list[tid][i]!= -1  ){ 
+	     					
+	     					while(receive_tunnel_ready_signal[tid][bot_peer_list[tid][i]] == 1 ){
+					     		pthread_cond_wait(&receive_butter_empty[tid][bot_peer_list[tid][i]],&mutex[tid][bot_peer_list[tid][i]]);	
+					     	}
+						
+	     					
+	     					strcpy(receive_func_message[tid][bot_peer_list[tid][i]], send_message[tid]);//
+	     					
+	     					receive_tunnel_ready_signal[tid][bot_peer_list[tid][i]] = 1 ;
+	     					
+	     					
+	     							
+	     				}
+	     				
+	     				
+	     			}
+	     			
+	     			
+	     			
+			 	}
+			 	
+			 	bot_command[tid]=99;
+			 	
+				break;
+			case 3:
+				
+	     			bot_command[tid]=99;
+				break;	
+				
+			case 4:
+				
+	     			bot_command[tid]=99;
+	     			
+				break;		
+			case 0:
+				
+				break;
+			case (-1):
+				
+				
+				break;	
+		}
+		
+		
+		
+	}
+	
+    printf(" thread %ld terminated !\n", tid);
     pthread_exit(NULL);
 }
+void program_over(int signal){
+    int i=0;
+    int j=0;
+    if(signal==1){
+    
+	    for (i = 0; i < NUM_BOTS; i++) {
+					
+		bot_work_over[i]=1;
+		for (j = 0; j < NUM_BOTS; j++){
+			tunnel_work_over[i][j]=1;
+		}		
+	    }
+				
+	    CPP_terminate_signal=1;	
+    }
 
+}
 
 int main() {
-    pthread_t threads[NUM_THREADS];
+    pthread_t threads[NUM_BOTS];
     
     pthread_t CPP;
     int rc,return_data;
     int check=1;
     char data[1024]; 
 
-    int bot_command=-1;
-    int receive_command_ID[NUM_THREADS];
+    int master_command=-1;
+    int receive_command_ID[NUM_BOTS];
     int i=0;
     int j=0;
+    int a,b;
     long t;
     //FILE* f;
 
-    Transmit transmit_data[NUM_THREADS][NUM_THREADS];
-    for (i = 0; i < NUM_THREADS; i++){
-	    for (j = 0; j < NUM_THREADS; j++){
-	    transmit_data[i][j].from = i;
-	    //printf("transmit_data-> from :%ld \n",transmit_data.from);
-	    transmit_data[i][j].to = j;
-	    //printf("transmit_data-> to :%ld \n",transmit_data.to);
-	    
-	    rc = pthread_create(&receive[i][j], NULL, handle_receive_func, &transmit_data[i][j]);
-	    if (rc) {
-			    printf("ERORR; return code from pthread_create() is %d\n", rc);
-			    pthread_exit(NULL);
-		    }
-	    rc = pthread_create(&send[i][j], NULL, handle_send_func, &transmit_data[i][j]);  
-	    if (rc) {
-			    printf("ERORR; return code from pthread_create() is %d\n", rc);
-			    pthread_exit(NULL);
-		    }      
-	    }
-    }
-    
-    
-    //rc = pthread_create(&send[tid], NULL, handle_send_func, (void *)tid);
-    
-    
-    
-    
     rc = pthread_create(&CPP, NULL, CPP_func, NULL);  
     if (rc) {
             printf("ERORR; return code from pthread_create() is %d\n", rc);
             exit(EXIT_FAILURE);
     }
     
-    for (t = 0; t < NUM_THREADS; t++) {
-    	thread_command[t]=99;
+    for (t = 0; t < NUM_BOTS; t++) {
+    	bot_command[t]=99;
         thread_receive_signal[t]=0;
         buffer_not_empty[t]=0;
-        for (i = 0; i < NUM_THREADS; i++){
+        for (i = 0; i < NUM_BOTS; i++){
 		thread_transmit_target[t][i]= -1;
-		thread_peer_list[t][i] = -1;
+		bot_peer_list[t][i] = -1;
 		
 	}
 	
@@ -465,7 +552,7 @@ int main() {
     i=0;
     j=0;
 
-    while(bot_command != 0 ){
+    while(master_command != 0 ){
     	
     	sleep(1);
     	
@@ -473,15 +560,15 @@ int main() {
     	printf("0:Exit  1: add thread id to peer list  2:send message to peer list \n");
     		
     		if(file_data[i][j]=='-') {
-    		scanf("%d",&bot_command);
-    		while(bot_command == 1){
+    		scanf("%d",&master_command);
+    		while(master_command == 1){
 			printf("auto not manual\n");
-			scanf("%d",&bot_command);
+			scanf("%d",&master_command);
 			
 		}
-    		while(bot_command < 0 || bot_command > 2){
+    		while(master_command < 0 || master_command > 2){
 			printf("error: only accept 0,1,2\n");
-			scanf("%d",&bot_command);
+			scanf("%d",&master_command);
 			
 		}
 		
@@ -492,30 +579,28 @@ int main() {
     		while(file_data[i][j] != '|' && file_data[i][j] !='-'){
     		 
     		printf("file_data[i][j] :%c \n",file_data[i][j]);
-    		bot_command = file_data[i][j]-48;		
+    		master_command = file_data[i][j]-48;		
     		j++;
     		}
     		if(file_data[i][j] == '|')j++;
 
-    		if(bot_command < 0 || bot_command > 2){
+    		if(master_command < 0 || master_command > 2){
 			printf("error: only accept 0,1,2\n");
 			
 			break;	
 		}
-    		printf("bot_command :%d \n",bot_command);
+    		printf("master_command :%d \n",master_command);
     		
     		}
-		/*scanf("%d",&bot_command);
+		/*scanf("%d",&master_command);
 		 */
-		if(bot_command == 0 ) {
-			for (t = 0; t < NUM_THREADS; t++) 
-				thread_command[t]=-1;	
-			CPP_terminate_signal=1;	
+		if(master_command == 0 ) {
+			program_over(1);
 			break;
 		}
 		sleep(0.8);
 		
-		switch(bot_command) {
+		switch(master_command) {
 			
 		    	
 			case 1:	
@@ -530,7 +615,7 @@ int main() {
 				printf("%d\n", receive_command_ID[0]);		
 		    		j++;
 		    		}
-		    		if(receive_command_ID[0]>(NUM_THREADS-1) || receive_command_ID[0]< (-1)){
+		    		if(receive_command_ID[0]>(NUM_BOTS-1) || receive_command_ID[0]< (-1)){
 					printf("input error not exist this thread id\n");
 					break;
 				}
@@ -546,21 +631,23 @@ int main() {
 
 			    		
 			    		if((file_data[i][j]-48) >= 0){
-			    			if((file_data[i][j]-48) > (NUM_THREADS-1) || (file_data[i][j]-48) < (-1)){
+			    			if((file_data[i][j]-48) > (NUM_BOTS-1) || (file_data[i][j]-48) < (-1)){
 							printf("input error not exist this thread id\n");
 							break;
 						}
+						
 						if((file_data[i][j]-48) == receive_command_ID[0]){
 							printf("input error cannt input receive thread id\n");
 							break;
 						}
-						
-				    		thread_peer_list[receive_command_ID[0]][t] = file_data[i][j]-48;
-				    		printf("thread_peer_list :%d\n",thread_peer_list[receive_command_ID[0]][t]);
+						sum_of_num_of_peerlist++;
+				    		bot_peer_list[receive_command_ID[0]][t] = file_data[i][j]-48;
+				    		printf("bot_peer_list :%d\n",bot_peer_list[receive_command_ID[0]][t]);
+				    		
 				    		t++;
 			    		}
 			    		if((file_data[i][j]-48) == -3){
-			    		thread_peer_list[receive_command_ID[0]][t] = -1;
+			    		bot_peer_list[receive_command_ID[0]][t] = -1;
 			    		}
 			
 			    		j++;
@@ -570,13 +657,27 @@ int main() {
 		    		
 		    			
 
-				thread_command[receive_command_ID[0]]=bot_command;
+				bot_command[receive_command_ID[0]]=master_command;
 				i++;
 				j=0;
 				break;
 				
 				
 			case 2:
+				Transmit transmit_data[NUM_BOTS][NUM_BOTS];
+				for (a = 0; a < NUM_BOTS; a++){
+					for (b = 0; b < NUM_BOTS; b++){
+					tunnel_work_over[a][b]=0;        
+					transmit_data[a][b].from = a;
+					transmit_data[a][b].to = b;
+					rc = pthread_create(&receive[a][b], NULL, handle_receive_func, &transmit_data[a][b]);
+					rc = pthread_create(&send[a][b], NULL, handle_send_func, &transmit_data[a][b]);  
+					receive_tunnel_ready_signal[a][b]=0 ;
+					send_tunnel_ready_signal[a][b]=0;
+					
+					  }
+				}
+				transmit_times=2*sum_of_num_of_peerlist;
 				printf("1:all 0:appoint \n");
 				int all_signal;
 				scanf("%d",&all_signal);
@@ -589,16 +690,16 @@ int main() {
 				if(all_signal == 0){
 					printf("enter ID of thread(s) and input -1 to terminate\n");
 					
-					for (t = 0; t < NUM_THREADS; t++) {
+					for (t = 0; t < NUM_BOTS; t++) {
 						
 						scanf("%d",&receive_command_ID[t]);
 						
-						while(receive_command_ID[t] > (NUM_THREADS-1) || receive_command_ID[t] < (-1)){
+						while(receive_command_ID[t] > (NUM_BOTS-1) || receive_command_ID[t] < (-1)){
 							printf("input error not exist this thread id\n");
 							scanf("%d",&receive_command_ID[t]);
 						}	
 						if(receive_command_ID[t] == -1) {
-								for (k = t; k < NUM_THREADS; k++) 
+								for (k = t; k < NUM_BOTS; k++) 
 									receive_command_ID[k] = -1;
 								break;
 							}
@@ -609,10 +710,10 @@ int main() {
 					fgets(data, 1024, stdin);
 					data[strlen(data) - 1] = '\0';
 					
-					for (t = 0; t < NUM_THREADS; t++) {
+					for (t = 0; t < NUM_BOTS; t++) {
 						if(receive_command_ID[t]!=-1) {
 							
-							thread_command[receive_command_ID[t]]=bot_command;
+							bot_command[receive_command_ID[t]]=master_command;
 							strcpy(send_message[receive_command_ID[t]],data);//strcpy(message[receive_command_ID[t]],data);
 						}
 							
@@ -626,11 +727,23 @@ int main() {
 					fgets(data, 1024, stdin);
 					data[strlen(data) - 1] = '\0';
 										
-					for (t = 0; t < NUM_THREADS; t++) {							
-						thread_command[t]=bot_command;
+					for (t = 0; t < NUM_BOTS; t++) {							
+						bot_command[t]=master_command;
 						strcpy(send_message[t],data);		
 					}
 				
+				}
+				while(transmit_times!=0){
+				sleep(0.1);
+				}
+				
+				if(transmit_times==0){
+				printf("transmit_times :%d\n",transmit_times);
+				for (a = 0; a < NUM_BOTS; a++){
+					for (b = 0; b < NUM_BOTS; b++){
+						tunnel_work_over[a][b]=1;
+					}		
+				}
 				}
 				
 				break;
@@ -649,7 +762,7 @@ int main() {
 		
     
 	}
-	for (t = 0; t < NUM_THREADS; t++){
+	for (t = 0; t < NUM_BOTS; t++){
 		pthread_join(threads[t],NULL);	
 	}
     
