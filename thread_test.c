@@ -208,7 +208,7 @@ void *handle_send_func(void *transmit_information){
 	    
 	    strcpy(message_peer_list,"");
 	    send_tunnel_ready_signal[information->from][information->to] =0; 
-	    //printf("send tunnel %ld-%ld work over\n", information->from , information->to);
+	    printf("send tunnel %ld-%ld work over\n", information->from , information->to);
 	    send_command[information->from][information->to] = 0;
 	         	
 		     	
@@ -279,7 +279,7 @@ void *handle_receive_func(void *transmit_information){
 	strcpy(receive_func_message[information->from][information->to],"");
 	strcpy(func_message,"");
 	receive_tunnel_ready_signal[information->from][information->to] = 0 ; 
-	//printf("receive tunnel %ld-%ld work over\n", information->from , information->to);
+	printf("receive tunnel %ld-%ld work over\n", information->from , information->to);
 	pthread_cond_signal(&receive_butter_empty[information->from][information->to]);
 	transmit_times--;
 	}
