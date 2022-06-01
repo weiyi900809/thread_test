@@ -559,7 +559,7 @@ int main() {
     	printf("enter command \n");
     	printf("0:Exit  1: add thread id to peer list  2:send message to peer list \n");
     		
-    		if(file_data[i][j]=='-') {
+    		if(file_data[i][j]=='\0') {
     		scanf("%d",&master_command);
     		while(master_command == 1){
 			printf("auto not manual\n");
