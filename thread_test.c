@@ -8,10 +8,13 @@
 #include <sys/stat.h>
 #include <sys/shm.h>
 
+#include "msg_process.h"
+//
 #define NUM_BOTS 8
 
 
-
+tmsg_buffer* receive_buff[NUM_BOTS][NUM_BOTS] ;
+tmsg_element* receive_event[NUM_BOTS][NUM_BOTS] ;
 
 typedef struct  transmit{
 
@@ -20,6 +23,14 @@ long to;
 	
 }Transmit; 
 
+typedef struct  set{
+
+long num_1;//0 4 
+long num_2;//1 5
+long num_3;//2 6
+long num_4;//3 7
+	
+}Set; 
   
 
 int bot_command[NUM_BOTS]; 
@@ -493,7 +504,7 @@ void program_over(int signal){
 }
 
 int main() {
-    pthread_t threads[NUM_BOTS/4];
+    pthread_t threads[NUM_BOTS];
     
     pthread_t CPP;
     int rc,return_data;
