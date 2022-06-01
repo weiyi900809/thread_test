@@ -8,13 +8,10 @@
 #include <sys/stat.h>
 #include <sys/shm.h>
 
-#include "msg_process.h"
-//
 #define NUM_BOTS 8
 
 
-tmsg_buffer* receive_buff[NUM_BOTS][NUM_BOTS] ;
-tmsg_element* receive_event[NUM_BOTS][NUM_BOTS] ;
+
 
 typedef struct  transmit{
 
@@ -23,14 +20,6 @@ long to;
 	
 }Transmit; 
 
-typedef struct  set{
-
-long num_1;//0 4 
-long num_2;//1 5
-long num_3;//2 6
-long num_4;//3 7
-	
-}Set; 
   
 
 int bot_command[NUM_BOTS]; 
@@ -219,7 +208,7 @@ void *handle_send_func(void *transmit_information){
 	    
 	    strcpy(message_peer_list,"");
 	    send_tunnel_ready_signal[information->from][information->to] =0; 
-	    printf("send tunnel %ld-%ld work over\n", information->from , information->to);
+	    //printf("send tunnel %ld-%ld work over\n", information->from , information->to);
 	    send_command[information->from][information->to] = 0;
 	         	
 		     	
@@ -290,7 +279,7 @@ void *handle_receive_func(void *transmit_information){
 	strcpy(receive_func_message[information->from][information->to],"");
 	strcpy(func_message,"");
 	receive_tunnel_ready_signal[information->from][information->to] = 0 ; 
-	printf("receive tunnel %ld-%ld work over\n", information->from , information->to);
+	//printf("receive tunnel %ld-%ld work over\n", information->from , information->to);
 	pthread_cond_signal(&receive_butter_empty[information->from][information->to]);
 	transmit_times--;
 	}
@@ -504,7 +493,7 @@ void program_over(int signal){
 }
 
 int main() {
-    pthread_t threads[NUM_BOTS];
+    pthread_t threads[NUM_BOTS/4];
     
     pthread_t CPP;
     int rc,return_data;
