@@ -308,10 +308,7 @@ void bot_func(long tid){
 
 
     int i,j;
-    printf("Hello There! I am thread %ld\n", tid);
-    while(1){//    while(bot_work_over[tid] != 1){
-		
-		sleep(0.5);
+  
 		
 		
 		switch(bot_command[tid]) {
@@ -382,14 +379,10 @@ void bot_func(long tid){
 				
 				break;	
 		}
-		if(bot_command[tid]==-1) {
-			
-			
-			break;
-		}
 		
 		
-	}
+		
+	
 
 }
 void *thread_func(void *threadid) {// 1 thread = 4 bots
@@ -401,7 +394,7 @@ void *thread_func(void *threadid) {// 1 thread = 4 bots
     
     
     
-    printf("Hello There! I am thread %ld, my pthread ID - %lu\n", tid, pthread_self()-1);
+    //printf("Hello There! I am thread %ld, my pthread ID - %lu\n", tid, pthread_self()-1);
     while(bot_work_over[tid] != 1){
 		
 		sleep(0.5);
