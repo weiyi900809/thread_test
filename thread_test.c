@@ -42,6 +42,8 @@ int servent_command[NUM_SERVENT_BOTS];
 int servent_send_command[NUM_SERVENT_BOTS][NUM_SERVENT_BOTS]; 
 char servent_bot_command_buffer[NUM_SERVENT_BOTS][10][1024]; 
 int servent_bot_command_buffer_pointer[NUM_SERVENT_BOTS];
+char servent_bot_website_buffer[NUM_SERVENT_BOTS][10][1024]; 
+int servent_bot_website_buffer_pointer[NUM_SERVENT_BOTS];
 //-----------------------------------------
 int servent_receive_tunnel_ready_signal[NUM_SERVENT_BOTS][NUM_SERVENT_BOTS];
 int servent_send_tunnel_ready_signal[NUM_SERVENT_BOTS][NUM_SERVENT_BOTS];
@@ -60,6 +62,9 @@ int servent_client_num[NUM_SERVENT_BOTS];
 int client_command[NUM_BOTS]; 
 int client_send_command[NUM_BOTS][NUM_BOTS]; 
 char client_bot_command_buffer[NUM_BOTS][1024]; 
+int client_bot_command_buffer_pointer[NUM_BOTS];
+char client_bot_website_buffer[NUM_BOTS][10][1024]; 
+int client_bot_website_buffer_pointer[NUM_BOTS];
 //-----------------------------------------
 int client_receive_tunnel_ready_signal[NUM_BOTS][NUM_BOTS];
 int client_send_tunnel_ready_signal[NUM_BOTS][NUM_BOTS];
@@ -121,7 +126,7 @@ char make_peer_list_message(char message[],int tid){
 
 void *socialnetwork_func(){
     long time_counter =5;	
-    int master_command;
+
     int i=0;
     FILE* f;
     printf("Hello There! I am socialnetwork read command/%d sec\n",time_counter);
@@ -229,6 +234,18 @@ void *servent_handle_send_func(void *transmit_information){
 		     	servent_receive_tunnel_ready_signal[information->from][information->to] =1 ;
 			break;
 		case 3:
+			strcpy(message,"return website");
+			
+		     	while(servent_receive_tunnel_ready_signal[information->from][information->to] ==1 ){
+		     		
+		     		
+		     		pthread_cond_wait(&servent_receive_butter_empty[information->from][information->to],&mutex[information->from][information->to]);	
+		     	}
+							
+		     			
+		     	strcpy(servent_receive_message[information->from][information->to], message);
+		     	
+		     	servent_receive_tunnel_ready_signal[information->from][information->to] =1 ;
 			break;	
 					
 	    }
@@ -260,7 +277,7 @@ void *servent_handle_receive_func(void *transmit_information){
     information = (Transmit *)transmit_information;
    
     
-    int i,j,b,command_comparison_result=1;
+    int i,j,b,command_comparison_result=1,website_comparison_result=1;
    
     int behavior_request=0;
     char func_message[1024];
@@ -275,6 +292,8 @@ void *servent_handle_receive_func(void *transmit_information){
 	
 	strcpy(func_message,servent_receive_message[information->from][information->to]);
 	
+	
+	
 	if(strcmp(func_message,"return botmaster command") == 0 ){
 
 	b=0;
@@ -288,21 +307,47 @@ void *servent_handle_receive_func(void *transmit_information){
 	}
 				
 	if(command_comparison_result== 0){
-	printf(" servent %ld already exist this command\n",information->to);
+	printf(" servent %ld already have this command\n",information->to);
 	}
 	if(command_comparison_result != 0){
 	strcpy(servent_bot_command_buffer[information->to][servent_bot_command_buffer_pointer[information->to]],servent_bot_command_buffer[information->from][b]);
 	puts(servent_bot_command_buffer[information->to][servent_bot_command_buffer_pointer[information->to]]);
 	servent_bot_command_buffer_pointer[information->to]++;
+	}				
+	b++;			
+	}
+	}
+	
+	
+	if(strcmp(func_message,"return website") == 0 ){
+	b=0;
+		
+	printf("website from servent %ld:\n",information->from);
+	while(servent_bot_website_buffer[information->from][b][0]!= '\0'){
+				
+	for(i=0;i<servent_bot_website_buffer_pointer[information->to];i++){	
+	website_comparison_result=strcmp(servent_bot_website_buffer[information->to][i],servent_bot_website_buffer[information->from][b]);
+	if(website_comparison_result== 0){break;}
 	}
 				
-				
-	b++;
-				
+	if(website_comparison_result== 0){
+	printf(" servent %ld already have this website\n",information->to);
 	}
-	//-------Need to deal with peer list specially---------
+	if(website_comparison_result != 0){
+	strcpy(servent_bot_website_buffer[information->to][servent_bot_website_buffer_pointer[information->to]],servent_bot_website_buffer[information->from][b]);
+	puts(servent_bot_website_buffer[information->to][servent_bot_website_buffer_pointer[information->to]]);
+	servent_bot_website_buffer_pointer[information->to]++;
+	}				
+	b++;			
+	}
+	
+	
+	
+	
+	
 	
 	}
+	//-------Need to deal with peer list specially---------
 	if(func_message[0] == '*' ){
 	
 		behavior_request = func_message[1]-48;
@@ -320,6 +365,13 @@ void *servent_handle_receive_func(void *transmit_information){
 					servent_send_tunnel_ready_signal[information->to][information->from]=1;
 				 	
 					break;
+				case 3:
+					
+					servent_send_command[information->to][information->from]=3;
+					servent_send_tunnel_ready_signal[information->to][information->from]=1;
+				 	
+					break;	
+					
 				case 0:
 					break;	
 				
@@ -490,7 +542,7 @@ void servent_func(long servent_id){
 		if(servent_work_over[servent_id] == 1){
 			return;
 		}
-		//servent_command[servent_id] =  rand()  % 4;
+		//servent_command[servent_id] =  rand()  % 4+1;
 		//printf(" servent_command[%ld] = %d !\n", servent_id,servent_command[servent_id]);
 		switch(servent_command[servent_id]) {
 			case 0:
@@ -704,7 +756,92 @@ void servent_func(long servent_id){
 				break;	
 				
 			case 4:	
-			        servent_command[servent_id]=99;
+			        
+			        
+			        servent_peer_num[servent_id]=0;
+				for(i=0;i<NUM_SERVENT_BOTS;i++){
+				
+				if(servent_peer_list[servent_id][i]!= -1)
+				servent_peer_num[servent_id]++;
+					
+				} 
+				send_target = rand() % (servent_peer_num[servent_id]) ;
+				while(send_target==servent_id){
+    
+				send_target = rand() % (servent_peer_num[servent_id]) ;
+				    
+				}
+				while(servent_transmit_times[servent_id][send_target]==1){
+					sleep(0.1);
+				
+				}
+				while(servent_transmit_times[send_target][servent_id]==1){
+					sleep(0.1);
+				
+				}
+				servent_tunnel_work_over[servent_id][send_target]=0;        
+				servent_transmit_data[servent_id][send_target].from = servent_id;
+				servent_transmit_data[servent_id][send_target].to = send_target;
+				rc = pthread_create(&servent_receive[servent_id][send_target], NULL, servent_handle_receive_func, &servent_transmit_data[servent_id][send_target]);
+				rc = pthread_create(&servent_send[servent_id][send_target], NULL, servent_handle_send_func, &servent_transmit_data[servent_id][send_target]);  
+				servent_receive_tunnel_ready_signal[servent_id][send_target]=0 ;
+				servent_send_tunnel_ready_signal[servent_id][send_target]=0;
+				
+				servent_transmit_times[servent_id][send_target]=1;
+				
+				
+				
+				servent_tunnel_work_over[send_target][servent_id]=0;        
+				servent_transmit_data[send_target][servent_id].from = send_target;
+				servent_transmit_data[send_target][servent_id].to = servent_id;
+				rc = pthread_create(&servent_receive[send_target][servent_id], NULL, servent_handle_receive_func, &servent_transmit_data[send_target][servent_id]);
+				rc = pthread_create(&servent_send[send_target][servent_id], NULL, servent_handle_send_func, &servent_transmit_data[send_target][servent_id]);  
+				servent_receive_tunnel_ready_signal[send_target][servent_id]=0 ;
+				servent_send_tunnel_ready_signal[send_target][servent_id]=0;
+
+				
+				
+				servent_transmit_times[send_target][servent_id]=1;
+				
+				strcpy(servent_send_message[servent_id],"*3");//
+				printf("servent %ld , transmit_data: %s , target:%d", servent_id,servent_send_message[servent_id],send_target);
+				
+				
+	     			
+	     			
+	     			
+	     			puts("");
+	     			
+	     			
+	     					
+	     			while(servent_receive_tunnel_ready_signal[servent_id][send_target] ==1 ){
+					pthread_cond_wait(&servent_receive_butter_empty[servent_id][send_target],&mutex[servent_id][send_target]);	
+				}
+						
+	     					
+	     			strcpy(servent_receive_message[servent_id][send_target], servent_send_message[servent_id]);//
+	     					
+	     			servent_receive_tunnel_ready_signal[servent_id][send_target] = 1 ;
+	     			
+	     					
+	     			
+	     			while(servent_transmit_times[servent_id][send_target] != 0  || servent_transmit_times[send_target][servent_id] != 0){
+	     			
+				sleep(0.1);
+				}
+				
+				
+				
+				if(servent_transmit_times[servent_id][send_target]== 0 && servent_transmit_times[send_target][servent_id]==0){
+				
+				
+				servent_tunnel_work_over[servent_id][send_target]=1;
+				servent_tunnel_work_over[send_target][servent_id]=1;
+						
+				
+				}
+	     			servent_command[servent_id]=99;
+				break;	
 			
 			case (-1):
 				printf(" servent %ld terminated !\n", servent_id);
@@ -953,6 +1090,34 @@ void init_servent_peer_list(){
     puts("");
 
 }
+void init_servent_client_website(){
+    int j=0,i=0;
+    FILE* f;
+    char website[10][1024];
+    f = fopen("website.txt" , "r");
+    if(!f){
+    printf("data not exist");
+    system("PAUSE");
+    pthread_exit(NULL);
+    }
+    while(fgets(website[i], 1024, f) != NULL ){
+		    
+		    
+    printf("website[%d]:\n",i);
+    puts(website[i]);
+    
+    for(j=0;j<NUM_SERVENT_BOTS;j++){
+    //printf("website in servent %d buffer:\n",j);
+    strcpy(servent_bot_website_buffer[0][i], website[i]);//
+    //puts(servent_bot_website_buffer[j][i]);
+    }
+    
+    i++;
+    }
+
+    fclose(f);
+
+}
 int main() {
 	
     srand(time(NULL) );
@@ -990,7 +1155,7 @@ int main() {
 
         
   
-    }
+     }
      for (t = 0; t < (NUM_SERVENT_BOTS/4); t++) {
  	rc = pthread_create(&servent_threads[t], NULL, servent_thread_func, (void *)t);
         
@@ -1002,6 +1167,9 @@ int main() {
     
    
     init_servent_peer_list();
+    init_servent_client_website();
+   
+    
 
 
 
@@ -1013,7 +1181,7 @@ int main() {
     	sleep(1);
     	
     	printf("enter command \n");
-    	printf("0:Exit 1.fetch command from social network  2:fetch command from peer list     3: request peer list from peer  \n");
+    	printf("0:Exit 1.fetch command from social network  2:fetch command from peer list  3: request peer list from peer  4:request website from peer \n");
     		
     		
     		scanf("%d",&master_command);
@@ -1030,11 +1198,11 @@ int main() {
 		    	
 			case 1:	
 					
-				servent_command[0]=master_command;	
-				/*for (t = 0; t < NUM_SERVENT_BOTS; t++) {							
-					
+				
+				for (t = 0; t < NUM_SERVENT_BOTS; t++) {							
+					servent_command[0]=master_command;	
 						
-					}*/
+					}
 				break;
 				
 			case 2:
@@ -1051,13 +1219,15 @@ int main() {
 					servent_command[t]=master_command;		
 						
 					}	
-					
-					
-				
-				
-				
-				
 				break;
+			case 4:
+				
+					
+				for (t = 0; t < NUM_SERVENT_BOTS; t++) {							
+					servent_command[t]=master_command;		
+						
+					}	
+				break;	
 			default:
 				sleep(10);
 				break;
