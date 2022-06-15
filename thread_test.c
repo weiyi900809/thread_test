@@ -34,7 +34,8 @@ Transmit servent_transmit_data[NUM_SERVENT_BOTS][NUM_SERVENT_BOTS];
 Transmit client_transmit_data[NUM_SERVENT_BOTS][NUM_SERVENT_BOTS];
 int servent_thread_work_over[NUM_SERVENT_BOTS/4];
 int client_thread_work_over[NUM_SERVENT_BOTS/4];
-char file_data[10][1024]; 
+char file_data[10][10][1024]; 
+
 int socialnetwork_terminate_signal=0;
 //servent----------------------------------
 //-----------------------------------------
@@ -125,31 +126,40 @@ char make_peer_list_message(char message[],int tid){
 
 
 void *socialnetwork_func(){
-    long time_counter =5;	
+    long time_counter =5;
+    char path[1024];
 
-    int i=0;
-    FILE* f;
+    int i=0,j=0,f=1;
+    FILE* file;
     printf("Hello There! I am socialnetwork read command/%d sec\n",time_counter);
     while(socialnetwork_terminate_signal != 1){
     	
 
 	    if(time_counter == 5){
-		    f = fopen("command.txt" , "r");
+
+		    for(i=0,f=1;i<3,f<=3;i++,f++){
+		    sprintf(path, "command%d.txt", f); 
+		    file = fopen(path, "r");
 		    if(!f){
 			printf("data not exist");
 			system("PAUSE");
 			pthread_exit(NULL);
 		    }
-		    while(fgets(file_data[i], 1024, f) != NULL ){
+		    while(fgets(file_data[i][j], 1024, file) != NULL ){
 		    
 		    
-		    printf("command from botmaster:");
-		    puts(file_data[i]);
-		    i++;
+		    printf("command%d from botmaster:",f);
+		    puts(file_data[i][j]);
+		    j++;
+		    }
+		    j=0;
+		    fclose(file);
 		    }
 		    time_counter=0;
-		    i=0;
-		    fclose(f);
+		    
+		    
+		    
+		    
 	    }
 	    
 	    sleep(1);
@@ -161,6 +171,7 @@ void *socialnetwork_func(){
     pthread_exit(NULL);
 	
 }
+
 void *behavior_func(void *threadid){
 
     long tid;
@@ -265,7 +276,7 @@ void *servent_handle_send_func(void *transmit_information){
     	
     }
     
-    printf(" servent_handle_send_func %ld-%ld terminated !\n", information->from,information->to);
+    //printf(" servent_handle_send_func %ld-%ld terminated !\n", information->from,information->to);
     pthread_exit(NULL);	
 
 
@@ -397,7 +408,7 @@ void *servent_handle_receive_func(void *transmit_information){
  
     }
     
-    printf(" servent_handle_receive_func %ld-%ld terminated !\n", information->from,information->to);
+    //printf(" servent_handle_receive_func %ld-%ld terminated !\n", information->from,information->to);
     pthread_exit(NULL);	
 
 }
@@ -536,14 +547,14 @@ void *client_handle_receive_func(void *transmit_information){
 void servent_func(long servent_id){
 
 
-    int rc,a,b,i,j,send_target,command_comparison_result=1,result;
+    int rc,a,b,i,j,send_target,command_comparison_result=1,result,file_num;
     char text[1024];
   
 		if(servent_work_over[servent_id] == 1){
 			return;
 		}
-		//servent_command[servent_id] =  rand()  % 4+1;
-		//printf(" servent_command[%ld] = %d !\n", servent_id,servent_command[servent_id]);
+		servent_command[servent_id] =  rand()  % 4+1;
+		printf(" servent_command[%ld] = %d !\n", servent_id,servent_command[servent_id]);
 		switch(servent_command[servent_id]) {
 			case 0:
 				
@@ -551,33 +562,91 @@ void servent_func(long servent_id){
 				servent_command[servent_id]=99;
 				break;
 			case 1:
-				
-				b=0;
-				
-                                
-				printf(" I am servent[%ld] \n", servent_id);
-				printf("command from botmaster:\n");
-				while(file_data[b][0]!= '\0'){
-				
-				for(i=0;i<servent_bot_command_buffer_pointer[servent_id];i++){	
-				command_comparison_result=strcmp(servent_bot_command_buffer[servent_id][i],file_data[b]);
-				if(command_comparison_result== 0){break;}
+				file_num=rand()  % 3;
+				switch(file_num){
+				case 0:
+					a=0;
+					b=0;
+					//printf(" I am servent[%ld] \n", servent_id);
+					printf("command%d from botmaster:\n",a+1);
+					while(file_data[a][b][0]!= '\0'){
+					
+					for(i=0;i<servent_bot_command_buffer_pointer[servent_id];i++){	
+					command_comparison_result=strcmp(servent_bot_command_buffer[servent_id][i],file_data[a][b]);
+					if(command_comparison_result== 0){break;}
+					}
+					
+					if(command_comparison_result== 0){
+					puts("already exist this command");
+					
+					}
+					if(command_comparison_result != 0){
+					strcpy(servent_bot_command_buffer[servent_id][servent_bot_command_buffer_pointer[servent_id]],file_data[a][b]);
+					puts(servent_bot_command_buffer[servent_id][servent_bot_command_buffer_pointer[servent_id]]);
+					servent_bot_command_buffer_pointer[servent_id]++;
+					}
+					
+					
+					b++;
+					
+					}
+					break;
+				case 1:
+					a=1;
+					b=0;
+					//printf(" I am servent[%ld] \n", servent_id);
+					printf("command%d from botmaster:\n",a+1);
+					while(file_data[a][b][0]!= '\0'){
+					
+					for(i=0;i<servent_bot_command_buffer_pointer[servent_id];i++){	
+					command_comparison_result=strcmp(servent_bot_command_buffer[servent_id][i],file_data[a][b]);
+					if(command_comparison_result== 0){break;}
+					}
+					
+					if(command_comparison_result== 0){
+					puts("already exist this command");
+					
+					}
+					if(command_comparison_result != 0){
+					strcpy(servent_bot_command_buffer[servent_id][servent_bot_command_buffer_pointer[servent_id]],file_data[a][b]);
+					puts(servent_bot_command_buffer[servent_id][servent_bot_command_buffer_pointer[servent_id]]);
+					servent_bot_command_buffer_pointer[servent_id]++;
+					}
+					
+					
+					b++;
+					
+					}
+					break;
+				case 2:
+					a=2;
+					b=0;
+					//printf(" I am servent[%ld] \n", servent_id);
+					printf("command%d from botmaster:\n",a+1);
+					while(file_data[a][b][0]!= '\0'){
+					
+					for(i=0;i<servent_bot_command_buffer_pointer[servent_id];i++){	
+					command_comparison_result=strcmp(servent_bot_command_buffer[servent_id][i],file_data[a][b]);
+					if(command_comparison_result== 0){break;}
+					}
+					
+					if(command_comparison_result== 0){
+					puts("already exist this command");
+					
+					}
+					if(command_comparison_result != 0){
+					strcpy(servent_bot_command_buffer[servent_id][servent_bot_command_buffer_pointer[servent_id]],file_data[a][b]);
+					puts(servent_bot_command_buffer[servent_id][servent_bot_command_buffer_pointer[servent_id]]);
+					servent_bot_command_buffer_pointer[servent_id]++;
+					}
+					
+					
+					b++;
+					
+					}
+					break;
 				}
 				
-				if(command_comparison_result== 0){
-				puts("already exist this command");
-				
-				}
-				if(command_comparison_result != 0){
-				strcpy(servent_bot_command_buffer[servent_id][servent_bot_command_buffer_pointer[servent_id]],file_data[b]);
-				puts(servent_bot_command_buffer[servent_id][servent_bot_command_buffer_pointer[servent_id]]);
-				servent_bot_command_buffer_pointer[servent_id]++;
-				}
-				
-				
-				b++;
-				
-				}
 				
 				servent_command[servent_id]=99;
 				
@@ -848,7 +917,7 @@ void servent_func(long servent_id){
 				
 				break;	
 		}
-		//sleep(1);
+		sleep(1);
 		
 		
 	
