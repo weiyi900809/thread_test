@@ -11,7 +11,7 @@
 #include <sys/shm.h>
 
 //
-#define NUM_SERVENT_BOTS 30
+#define NUM_SERVENT_BOTS 50
 #define NUM_FAKE_SERVENT_BOTS 10
 #define NUM_CLIENT_BOTS 5
 #define NUM_SERVENT_PEER 10//NUM_SERVENT_BOTS-1
@@ -3340,13 +3340,13 @@ void servent_func(long s_id){
 		
 		
 		
-		if((now_sec - last_time_select_pattern[s_id] ) >= 10){
+		if((now_sec - last_time_select_pattern[s_id] ) >= 60){
 		//printf("now_sec %d  !\n", now_sec);
 		//printf("last_time_select_pattern[s_id]  %d  !\n", last_time_select_pattern[s_id] );
 		select_pattern_signal[s_id]  = 1;
 		//printf("select_pattern_signal[s_id]  %d  !\n", select_pattern_signal[s_id] );
 		}
-		if((now_sec - last_time_select_pattern[s_id] ) < 10){
+		if((now_sec - last_time_select_pattern[s_id] ) < 60){
 		select_pattern_signal[s_id]  = 0;
 		//printf(" select_pattern_signal[s_id]  %d  !\n", select_pattern_signal[s_id] );
 		}
@@ -4603,13 +4603,13 @@ void fake_servent_func(long s_id){//zxc
 		
 		
 		
-		if((now_sec - last_time_select_pattern[s_id] ) >= 10){
+		if((now_sec - last_time_select_pattern[s_id] ) >= 60){
 		//printf("now_sec %d  !\n", now_sec);
 		//printf("last_time_select_pattern[s_id]  %d  !\n", last_time_select_pattern[s_id] );
 		select_pattern_signal[s_id]  = 1;
 		//printf("select_pattern_signal[s_id]  %d  !\n", select_pattern_signal[s_id] );
 		}
-		if((now_sec - last_time_select_pattern[s_id] ) < 10){
+		if((now_sec - last_time_select_pattern[s_id] ) < 60){
 		select_pattern_signal[s_id]  = 0;
 		//printf(" select_pattern_signal[s_id]  %d  !\n", select_pattern_signal[s_id] );
 		}
@@ -6346,7 +6346,7 @@ void *data_record_func(){
     now_sec = atoi(string_now_sec);	
     now_sec+=(60*now_min)+(60*60*now_hour);
     
-    if((now_sec - last_time_record ) >= 20 ){
+    if((now_sec - last_time_record ) >= 120 ){
     last_time_record  = now_sec;
     sprintf(record_data, "%d:vc.%d:vrc.%d:vs.%d \n",record_times ,vc ,vrc ,vs );
     record_times++;
