@@ -20,9 +20,9 @@
 #define reputation_value_max 5
 #define reputation_value_min 0
 
-#define NUM_SERVENT_BOTS 600
+#define NUM_SERVENT_BOTS 1500
 #define NUM_FAKE_SERVENT_BOTS 10
-#define NUM_CLIENT_BOTS 600
+#define NUM_CLIENT_BOTS 500
 
 /*int NUM_SERVENT_BOTS =1000;
 int NUM_FAKE_SERVENT_BOTS =10;
@@ -77,7 +77,7 @@ int sender;//self
 int receiver;//target or botmaster(9999)
 char timestamp[1024];
 char extra_information[1024];  
-char command_code[1024]; 
+char command_code[2048]; 
 
 }Command; 
 
@@ -104,8 +104,8 @@ Servent_Transmit servent_transmit_data[NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS][N
 Client_Transmit client_transmit_data[NUM_CLIENT_BOTS][NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS];
 int inject_signal=0;
 int servent_thread_work_over[NUM_SERVENT_BOTS/500];  // /1000
-int fake_servent_thread_work_over[NUM_SERVENT_BOTS/500]; // /1000
-int client_thread_work_over[NUM_SERVENT_BOTS/5];// /1000
+int fake_servent_thread_work_over[NUM_FAKE_SERVENT_BOTS/5]; // /1000
+int client_thread_work_over[NUM_CLIENT_BOTS/500];// /1000
 char file_data[10][10][1024]; 
 char already_exist_ip[NUM_CLIENT_BOTS+NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS][1024];
 int already_exist_ip_num=0;
@@ -181,14 +181,15 @@ pthread_t servent_transmit[NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS][NUM_SERVENT_B
 
 pthread_t client_receive[NUM_CLIENT_BOTS][NUM_SERVENT_BOTS];
 pthread_t servent_handle_client_message[NUM_CLIENT_BOTS][NUM_SERVENT_BOTS];
-
+pthread_attr_t attr;            
+ 
 
 int servent_transmit_times[NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS][NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS];
 
 int client_receive_times[NUM_CLIENT_BOTS][NUM_SERVENT_BOTS];
 int servent_receive_times_from_client[NUM_CLIENT_BOTS][NUM_SERVENT_BOTS];
 
-void servent_make_command(char* func_result, int sender_id, int receive_id, int extra_information_target, char* send_command_code){
+void servent_make_command(char *func_result, int sender_id, int receive_id, int extra_information_target, char *send_command_code){
    int i,j,format=rand() % 3+1;
    char text[80];
    time(&current);
@@ -425,7 +426,7 @@ void servent_make_command(char* func_result, int sender_id, int receive_id, int 
    
 
 }
-void client_make_command(char* func_result, int sender_id, int receive_id, int extra_information_target, char* send_command_code){
+void client_make_command(char *func_result, int sender_id, int receive_id, int extra_information_target, char *send_command_code){
    int format=rand() % 3+1;
    char text[80];
    time(&current);
@@ -439,8 +440,8 @@ void client_make_command(char* func_result, int sender_id, int receive_id, int e
    sec = atoi(s_sec);	
     
    sec+=(60*min)+(60*60*hour);
-   //printf("format = %d \n", format);
-   
+
+
    if(strcmp(send_command_code,"f003") == 0 || strcmp(send_command_code,"f004") == 0){
    int i=0,j=0,target_servent,c_id = sender_id-NUM_SERVENT_BOTS-NUM_FAKE_SERVENT_BOTS;
    
@@ -488,6 +489,7 @@ void client_make_command(char* func_result, int sender_id, int receive_id, int e
    	case 1:
    		
    		strncat(func_result,send_command_code ,strlen(send_command_code));//command_code
+   		
    		strcat(func_result,";");
    		sprintf(text, "%s:%d:%d", servent[target_servent].ip, servent[target_servent].port,target_servent );//extra information
    		strncat(func_result,text ,strlen(text));
@@ -651,11 +653,15 @@ void client_make_command(char* func_result, int sender_id, int receive_id, int e
    
 
 }
-void strchrn(char *dest,char *src, int begin, int end) {
+void strchrn(char *dest,char *src, int begin, int end) { //456
    int range=end-begin-1;
+   char data[1024];
+   memset(data,0,strlen(data));
+   strncpy(data, src+begin , range);
+   data[strlen(data)] = '\0';   
+   strcpy(dest ,data);
    
-   strncpy(dest, src+begin , range);
-   dest[strlen(dest)] = '\0';   
+   
 }
 void timestamp_split(char src[], char func_year[], char func_month[], char func_day[], char func_sec[]) {//xxx
    int i=0,j=0,dot_pointer[10];
@@ -1162,6 +1168,7 @@ int servent_commmand_analysis(int s_id,char *servent_command){
    		}
    		if(i==3){
    		strchrn(result[i],servent_command,segment_pointer[i-1],segment_pointer[i]-1);
+   		
    		strcpy(servent_bot_command_buffer[s_id][servent_bot_command_buffer_pointer[s_id]].command_code ,result[i]);
    		//puts(servent_bot_command_buffer[s_id][servent_bot_command_buffer_pointer[s_id]].command_code);
    		
@@ -1983,6 +1990,7 @@ void *servent_handle_transmit_func(void *transmit_information){
 }
 void *fake_servent_handle_transmit_func(void *transmit_information){
 
+    
     Servent_Transmit *information;
     information = (Servent_Transmit *)transmit_information;
    
@@ -2025,7 +2033,7 @@ void *fake_servent_handle_transmit_func(void *transmit_information){
 	
 	if(strcmp(servent_bot_command_buffer[information->to][servent_bot_command_buffer_pointer[information->to]].command_code ,"f002" )==0 ){
 	
-	if(servent[information->from].detect_and_reply_signal == 0 && information->from < NUM_SERVENT_BOTS && information->to>=NUM_SERVENT_BOTS ){
+	if(servent[information->from].detect_and_reply_signal == 0 && information->from < NUM_SERVENT_BOTS && information->to >= NUM_SERVENT_BOTS ){
 	servent[information->from].detect_and_reply_signal = 1;
 	vrc++;
 	}
@@ -2533,7 +2541,7 @@ void *client_handle_receive_func(void *transmit_information){
 	
 	strcpy(func_message,client_receive_message[information->client_id][information->servent_id]);
 	
-	
+		
 	if(client_commmand_analysis(information->client_id,func_message) == 1){
 	
 	//puts(client_bot_command_buffer[information->client_id][client_bot_command_buffer_pointer[information->client_id]].command_code);
@@ -2684,7 +2692,9 @@ void *client_handle_receive_func(void *transmit_information){
 	for ( i = 0; i < client_master_num[information->client_id]; i++) {
 	if(client_master[information->client_id][i].master_id!= -1)
 	   printf("id:%d value:%d\n",client_master[information->client_id][i].master_id, client_master[information->client_id][i].reputation_value);
-	}  
+	} 
+	
+		 
 	}
 	
 	}
@@ -2712,6 +2722,7 @@ void *client_handle_receive_func(void *transmit_information){
 	}				
 	b++;			
 	}
+		
 
 	}
 	/*for(i=0;i<client_master_num[information->client_id];i++){	
@@ -2810,9 +2821,12 @@ void *servent_handle_client_message_func(void *transmit_information){
 	
 	strcpy(func_message,servent_receive_message_from_client[information->client_id][information->servent_id]);//
 	
+	
 	if(servent_commmand_analysis(information->servent_id,func_message) == 1){
 	
+	
 	if(strcmp(servent_bot_command_buffer[information->servent_id][servent_bot_command_buffer_pointer[information->servent_id]].command_code ,"f001" )==0 ){
+	
 	
 	if(client[information->client_id].request_signal == 0 && servent[information->servent_id].sensor_signal == 1  ){
 	client[information->client_id].request_signal = 1;
@@ -2825,6 +2839,7 @@ void *servent_handle_client_message_func(void *transmit_information){
 	strcpy(client_receive_message[information->client_id][information->servent_id], message);
 		     	
 	servent_to_client_tunnel_ready_signal[information->client_id][information->servent_id] =1 ;
+	
 	
 	}
 	if(strcmp(servent_bot_command_buffer[information->servent_id][servent_bot_command_buffer_pointer[information->servent_id]].command_code ,"f003" )==0 ){
@@ -2923,6 +2938,7 @@ void *servent_handle_client_message_func(void *transmit_information){
 	    	switch(behavior_request) {
 
 				case 1:
+					
 					if(client[information->client_id].request_signal == 0 && servent[information->servent_id].sensor_signal == 1  ){
 					client[information->client_id].request_signal = 1;
 					vs++;
@@ -3007,23 +3023,23 @@ void client_func(long c_id){
 		
 		
 		
-		if((now_sec - client_last_time_select_pattern[c_id] ) >= 30){
+		if((now_sec - client_last_time_select_pattern[c_id] ) >= 300){
 		
 		client_select_pattern_signal[c_id]  = 1;
 		
 		}
-		if((now_sec - client_last_time_select_pattern[c_id] ) < 30){
-		client_select_pattern_signal[c_id]  = 0;
+		if((now_sec - client_last_time_select_pattern[c_id] ) < 300){
+		client_select_pattern_signal[c_id]  = 0; 
 		
 		}
 		if(client_select_pattern_signal[c_id] == 1){
-		//client_pattern[c_id] =  rand() % 3 +1 ;
+		client_pattern[c_id] =  rand() % 3 +1 ;
 		}
 		if(client_select_pattern_signal[c_id] == 0){
 		client_pattern[c_id] = 99;
 		}
 		
-		printf("client_pattern[%ld] = %d !\n", c_id,client_pattern[c_id]); //***-
+		
 		for(i=0;i<NUM_SERVENT_BOTS;i++){
 		if(client_master[c_id][i].master_id != -1 && servent_eliminate_signal[client_master[c_id][i].master_id] == 1){
 		client_master[c_id][i].master_id = -1;
@@ -3062,7 +3078,7 @@ void client_func(long c_id){
 		client_pattern[c_id]=99;
 		return;
 		}
-		
+		printf("client_pattern[%ld] = %d !\n", c_id,client_pattern[c_id]); //***-
 		switch(client_pattern[c_id]) {
 			case 0:
 	
@@ -3129,9 +3145,20 @@ void client_func(long c_id){
 				client_and_servent_tunnel_work_over[c_id][target_servent]=0;        
 				client_transmit_data[c_id][target_servent].client_id = c_id;
 				client_transmit_data[c_id][target_servent].servent_id = target_servent;
-				 
-				rc = pthread_create(&client_receive[c_id][target_servent], NULL, client_handle_receive_func, &client_transmit_data[c_id][target_servent]);
-				rc = pthread_create(&servent_handle_client_message[c_id][target_servent], NULL, servent_handle_client_message_func, &client_transmit_data[c_id][target_servent]);
+				pthread_attr_init(&attr);       
+    				pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);  
+				rc = pthread_create(&client_receive[c_id][target_servent], &attr, client_handle_receive_func, &client_transmit_data[c_id][target_servent]);
+				if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
+				pthread_attr_init(&attr);       
+    				pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); 
+				rc = pthread_create(&servent_handle_client_message[c_id][target_servent], &attr, servent_handle_client_message_func, &client_transmit_data[c_id][target_servent]);
+				if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
 				
 				client_to_servent_tunnel_ready_signal[c_id][target_servent] = 0 ;
 				servent_to_client_tunnel_ready_signal[c_id][target_servent] = 0 ; 
@@ -3223,9 +3250,20 @@ void client_func(long c_id){
 				client_and_servent_tunnel_work_over[c_id][target_servent]=0;        
 				client_transmit_data[c_id][target_servent].client_id = c_id;
 				client_transmit_data[c_id][target_servent].servent_id = target_servent;
-				 
-				rc = pthread_create(&client_receive[c_id][target_servent], NULL, client_handle_receive_func, &client_transmit_data[c_id][target_servent]);
-				rc = pthread_create(&servent_handle_client_message[c_id][target_servent], NULL, servent_handle_client_message_func, &client_transmit_data[c_id][target_servent]);
+				pthread_attr_init(&attr);       
+    				pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);  
+				rc = pthread_create(&client_receive[c_id][target_servent], &attr, client_handle_receive_func, &client_transmit_data[c_id][target_servent]);
+				if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
+				pthread_attr_init(&attr);       
+    				pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); 
+				rc = pthread_create(&servent_handle_client_message[c_id][target_servent], &attr, servent_handle_client_message_func, &client_transmit_data[c_id][target_servent]);
+				if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
 				
 				client_to_servent_tunnel_ready_signal[c_id][target_servent] = 0 ;
 				servent_to_client_tunnel_ready_signal[c_id][target_servent] = 0 ; 
@@ -3317,9 +3355,20 @@ void client_func(long c_id){
 				client_and_servent_tunnel_work_over[c_id][target_servent]=0;        
 				client_transmit_data[c_id][target_servent].client_id = c_id;
 				client_transmit_data[c_id][target_servent].servent_id = target_servent;
-				 
-				rc = pthread_create(&client_receive[c_id][target_servent], NULL, client_handle_receive_func, &client_transmit_data[c_id][target_servent]);
-				rc = pthread_create(&servent_handle_client_message[c_id][target_servent], NULL, servent_handle_client_message_func, &client_transmit_data[c_id][target_servent]);
+				pthread_attr_init(&attr);       
+    				pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);  
+				rc = pthread_create(&client_receive[c_id][target_servent], &attr, client_handle_receive_func, &client_transmit_data[c_id][target_servent]);
+				if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
+				pthread_attr_init(&attr);       
+    				pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); 
+				rc = pthread_create(&servent_handle_client_message[c_id][target_servent], &attr, servent_handle_client_message_func, &client_transmit_data[c_id][target_servent]);
+				if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
 				
 				client_to_servent_tunnel_ready_signal[c_id][target_servent]=0 ;
 				servent_to_client_tunnel_ready_signal[c_id][target_servent] = 0 ; 
@@ -3400,6 +3449,8 @@ void servent_func(long s_id){
     int command_year,command_month,command_day,command_sec;
     int deadline_year,deadline_month,deadline_day,deadline_sec;
     
+         
+                  
   
 		time(&current);
 		info = localtime( &current );
@@ -3422,13 +3473,13 @@ void servent_func(long s_id){
 		
 		
 		
-		if((now_sec - last_time_select_pattern[s_id] ) >= 30){
+		if((now_sec - last_time_select_pattern[s_id] ) >= 300){
 		//printf("now_sec %d  !\n", now_sec);
 		//printf("last_time_select_pattern[s_id]  %d  !\n", last_time_select_pattern[s_id] );
 		select_pattern_signal[s_id]  = 1;
 		//printf("select_pattern_signal[s_id]  %d  !\n", select_pattern_signal[s_id] );
 		}
-		if((now_sec - last_time_select_pattern[s_id] ) < 30){
+		if((now_sec - last_time_select_pattern[s_id] ) < 300){
 		select_pattern_signal[s_id]  = 0;
 		//printf(" select_pattern_signal[s_id]  %d  !\n", select_pattern_signal[s_id] );
 		}
@@ -3541,7 +3592,7 @@ void servent_func(long s_id){
 		
 		if(select_pattern_signal[s_id] == 1){
 		servent_pattern[s_id] =  rand() % 4+1;
-		//servent_pattern[s_id] = 3;
+		
 		}
 		if(select_pattern_signal[s_id] == 0){
 		servent_pattern[s_id] = 99;
@@ -3603,7 +3654,13 @@ void servent_func(long s_id){
 				servent_tunnel_work_over[s_id][send_target]=0;        
 				servent_transmit_data[s_id][send_target].from = s_id;
 				servent_transmit_data[s_id][send_target].to = send_target;
-				rc = pthread_create(&servent_transmit[s_id][send_target], NULL, servent_handle_transmit_func, &servent_transmit_data[s_id][send_target]);
+				pthread_attr_init(&attr);       
+    				pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); 
+				rc = pthread_create(&servent_transmit[s_id][send_target], &attr, servent_handle_transmit_func, &servent_transmit_data[s_id][send_target]);
+				if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
 				servent_transmit_tunnel_ready_signal[s_id][send_target]=0 ;
 				
 				
@@ -3789,7 +3846,13 @@ void servent_func(long s_id){
 		servent_tunnel_work_over[s_id][send_target]=0;        
 		servent_transmit_data[s_id][send_target].from = s_id;
 		servent_transmit_data[s_id][send_target].to = send_target;
-		rc = pthread_create(&servent_transmit[s_id][send_target], NULL, servent_handle_transmit_func, &servent_transmit_data[s_id][send_target]); 
+		pthread_attr_init(&attr);       
+    		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); 
+		rc = pthread_create(&servent_transmit[s_id][send_target], &attr, servent_handle_transmit_func, &servent_transmit_data[s_id][send_target]); 
+		if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
 		servent_transmit_tunnel_ready_signal[s_id][send_target]=0 ;
 				
 		servent_transmit_times[s_id][send_target]=1;
@@ -3799,7 +3862,13 @@ void servent_func(long s_id){
 		servent_tunnel_work_over[send_target][s_id]=0;        
 		servent_transmit_data[send_target][s_id].from = send_target;
 		servent_transmit_data[send_target][s_id].to = s_id;
-		rc = pthread_create(&servent_transmit[send_target][s_id], NULL, servent_handle_transmit_func, &servent_transmit_data[send_target][s_id]);
+		pthread_attr_init(&attr);       
+    		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+		rc = pthread_create(&servent_transmit[send_target][s_id], &attr, servent_handle_transmit_func, &servent_transmit_data[send_target][s_id]);
+		if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
 		servent_transmit_tunnel_ready_signal[send_target][s_id]=0 ;
 
 				
@@ -4105,7 +4174,13 @@ void servent_func(long s_id){
 				servent_tunnel_work_over[s_id][send_target]=0;        
 				servent_transmit_data[s_id][send_target].from = s_id;
 				servent_transmit_data[s_id][send_target].to = send_target;
-				rc = pthread_create(&servent_transmit[s_id][send_target], NULL, servent_handle_transmit_func, &servent_transmit_data[s_id][send_target]);
+				pthread_attr_init(&attr);       
+    				pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+				rc = pthread_create(&servent_transmit[s_id][send_target], &attr, servent_handle_transmit_func, &servent_transmit_data[s_id][send_target]);
+				if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
 				servent_transmit_tunnel_ready_signal[s_id][send_target]=0 ;
 				servent_transmit_times[s_id][send_target]=1;
 				
@@ -4114,7 +4189,14 @@ void servent_func(long s_id){
 				servent_tunnel_work_over[send_target][s_id]=0;        
 				servent_transmit_data[send_target][s_id].from = send_target;
 				servent_transmit_data[send_target][s_id].to = s_id;
-				rc = pthread_create(&servent_transmit[send_target][s_id], NULL, servent_handle_transmit_func, &servent_transmit_data[send_target][s_id]);
+				pthread_attr_init(&attr);       
+    				pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+				rc = pthread_create(&servent_transmit[send_target][s_id], &attr, servent_handle_transmit_func, &servent_transmit_data[send_target][s_id]);
+				if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
+				
 				servent_transmit_tunnel_ready_signal[send_target][s_id]=0 ;
 				servent_transmit_times[send_target][s_id]=1;
 				
@@ -4293,7 +4375,13 @@ void servent_func(long s_id){
 				servent_tunnel_work_over[s_id][send_target]=0;        
 				servent_transmit_data[s_id][send_target].from = s_id;
 				servent_transmit_data[s_id][send_target].to = send_target;
-				rc = pthread_create(&servent_transmit[s_id][send_target], NULL, servent_handle_transmit_func, &servent_transmit_data[s_id][send_target]);
+				pthread_attr_init(&attr);       
+    				pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+				rc = pthread_create(&servent_transmit[s_id][send_target], &attr, servent_handle_transmit_func, &servent_transmit_data[s_id][send_target]);
+				if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
 				servent_transmit_tunnel_ready_signal[s_id][send_target]=0 ;
 				servent_transmit_times[s_id][send_target]=1;
 				
@@ -4302,7 +4390,13 @@ void servent_func(long s_id){
 				servent_tunnel_work_over[send_target][s_id]=0;        
 				servent_transmit_data[send_target][s_id].from = send_target;
 				servent_transmit_data[send_target][s_id].to = s_id;
-				rc = pthread_create(&servent_transmit[send_target][s_id], NULL, servent_handle_transmit_func, &servent_transmit_data[send_target][s_id]);
+				pthread_attr_init(&attr);       
+    				pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+				rc = pthread_create(&servent_transmit[send_target][s_id], &attr, servent_handle_transmit_func, &servent_transmit_data[send_target][s_id]);
+				if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
 				servent_transmit_tunnel_ready_signal[send_target][s_id]=0 ;
 				servent_transmit_times[send_target][s_id]=1;
 
@@ -4459,7 +4553,13 @@ void servent_func(long s_id){
 				servent_tunnel_work_over[s_id][send_target]=0;        
 				servent_transmit_data[s_id][send_target].from = s_id;
 				servent_transmit_data[s_id][send_target].to = send_target;
-				rc = pthread_create(&servent_transmit[s_id][send_target], NULL, servent_handle_transmit_func, &servent_transmit_data[s_id][send_target]);
+				pthread_attr_init(&attr);       
+    				pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+				rc = pthread_create(&servent_transmit[s_id][send_target], &attr, servent_handle_transmit_func, &servent_transmit_data[s_id][send_target]);
+				if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
 				servent_transmit_tunnel_ready_signal[s_id][send_target]=0 ;
 				servent_transmit_times[s_id][send_target]=1;
 				
@@ -4468,7 +4568,13 @@ void servent_func(long s_id){
 				servent_tunnel_work_over[send_target][s_id]=0;        
 				servent_transmit_data[send_target][s_id].from = send_target;
 				servent_transmit_data[send_target][s_id].to = s_id;
-				rc = pthread_create(&servent_transmit[send_target][s_id], NULL, servent_handle_transmit_func, &servent_transmit_data[send_target][s_id]);
+				pthread_attr_init(&attr);       
+    				pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+				rc = pthread_create(&servent_transmit[send_target][s_id], &attr, servent_handle_transmit_func, &servent_transmit_data[send_target][s_id]);
+				if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
 				servent_transmit_tunnel_ready_signal[send_target][s_id]=0 ;
 				servent_transmit_times[send_target][s_id]=1;
 
@@ -4685,13 +4791,13 @@ void fake_servent_func(long s_id){//zxc
 		
 		
 		
-		if((now_sec - last_time_select_pattern[s_id] ) >= 30){
+		if((now_sec - last_time_select_pattern[s_id] ) >= 300){
 		//printf("now_sec %d  !\n", now_sec);
 		//printf("last_time_select_pattern[s_id]  %d  !\n", last_time_select_pattern[s_id] );
 		select_pattern_signal[s_id]  = 1;
 		//printf("select_pattern_signal[s_id]  %d  !\n", select_pattern_signal[s_id] );
 		}
-		if((now_sec - last_time_select_pattern[s_id] ) < 30){
+		if((now_sec - last_time_select_pattern[s_id] ) < 300){
 		select_pattern_signal[s_id]  = 0;
 		//printf(" select_pattern_signal[s_id]  %d  !\n", select_pattern_signal[s_id] );
 		}
@@ -4865,7 +4971,13 @@ void fake_servent_func(long s_id){//zxc
 				servent_tunnel_work_over[s_id][send_target]=0;        
 				servent_transmit_data[s_id][send_target].from = s_id;
 				servent_transmit_data[s_id][send_target].to = send_target;
-				rc = pthread_create(&servent_transmit[s_id][send_target], NULL, fake_servent_handle_transmit_func, &servent_transmit_data[s_id][send_target]);//
+				pthread_attr_init(&attr);       
+    				pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+				rc = pthread_create(&servent_transmit[s_id][send_target], &attr, fake_servent_handle_transmit_func, &servent_transmit_data[s_id][send_target]);//
+				if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
 				servent_transmit_tunnel_ready_signal[s_id][send_target]=0 ;
 				
 				
@@ -5051,7 +5163,13 @@ void fake_servent_func(long s_id){//zxc
 		servent_tunnel_work_over[s_id][send_target]=0;        
 		servent_transmit_data[s_id][send_target].from = s_id;
 		servent_transmit_data[s_id][send_target].to = send_target;
-		rc = pthread_create(&servent_transmit[s_id][send_target], NULL, fake_servent_handle_transmit_func, &servent_transmit_data[s_id][send_target]); 
+		pthread_attr_init(&attr);       
+    		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+		rc = pthread_create(&servent_transmit[s_id][send_target], &attr, fake_servent_handle_transmit_func, &servent_transmit_data[s_id][send_target]);
+		if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
 		servent_transmit_tunnel_ready_signal[s_id][send_target]=0 ;
 				
 		servent_transmit_times[s_id][send_target]=1;
@@ -5061,7 +5179,13 @@ void fake_servent_func(long s_id){//zxc
 		servent_tunnel_work_over[send_target][s_id]=0;        
 		servent_transmit_data[send_target][s_id].from = send_target;
 		servent_transmit_data[send_target][s_id].to = s_id;
-		rc = pthread_create(&servent_transmit[send_target][s_id], NULL, fake_servent_handle_transmit_func, &servent_transmit_data[send_target][s_id]);
+		pthread_attr_init(&attr);       
+    		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+		rc = pthread_create(&servent_transmit[send_target][s_id], &attr, fake_servent_handle_transmit_func, &servent_transmit_data[send_target][s_id]);
+		if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
 		servent_transmit_tunnel_ready_signal[send_target][s_id]=0 ;
 
 				
@@ -5364,7 +5488,14 @@ void fake_servent_func(long s_id){//zxc
 				servent_tunnel_work_over[s_id][send_target]=0;        
 				servent_transmit_data[s_id][send_target].from = s_id;
 				servent_transmit_data[s_id][send_target].to = send_target;
-				rc = pthread_create(&servent_transmit[s_id][send_target], NULL, fake_servent_handle_transmit_func, &servent_transmit_data[s_id][send_target]);
+				
+				pthread_attr_init(&attr);       
+				pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); 
+				rc = pthread_create(&servent_transmit[s_id][send_target], &attr, fake_servent_handle_transmit_func, &servent_transmit_data[s_id][send_target]);
+				if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
 				servent_transmit_tunnel_ready_signal[s_id][send_target]=0 ;
 				servent_transmit_times[s_id][send_target]=1;
 				
@@ -5373,7 +5504,13 @@ void fake_servent_func(long s_id){//zxc
 				servent_tunnel_work_over[send_target][s_id]=0;        
 				servent_transmit_data[send_target][s_id].from = send_target;
 				servent_transmit_data[send_target][s_id].to = s_id;
-				rc = pthread_create(&servent_transmit[send_target][s_id], NULL, fake_servent_handle_transmit_func, &servent_transmit_data[send_target][s_id]);
+				pthread_attr_init(&attr);       
+    				pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+				rc = pthread_create(&servent_transmit[send_target][s_id], &attr, fake_servent_handle_transmit_func, &servent_transmit_data[send_target][s_id]);
+				if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
 				servent_transmit_tunnel_ready_signal[send_target][s_id]=0 ;
 				servent_transmit_times[send_target][s_id]=1;
 				
@@ -5552,7 +5689,13 @@ void fake_servent_func(long s_id){//zxc
 				servent_tunnel_work_over[s_id][send_target]=0;        
 				servent_transmit_data[s_id][send_target].from = s_id;
 				servent_transmit_data[s_id][send_target].to = send_target;
-				rc = pthread_create(&servent_transmit[s_id][send_target], NULL, fake_servent_handle_transmit_func, &servent_transmit_data[s_id][send_target]);
+				pthread_attr_init(&attr);       
+    				pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+				rc = pthread_create(&servent_transmit[s_id][send_target], &attr, fake_servent_handle_transmit_func, &servent_transmit_data[s_id][send_target]);
+				if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
 				servent_transmit_tunnel_ready_signal[s_id][send_target]=0 ;
 				servent_transmit_times[s_id][send_target]=1;
 				
@@ -5561,7 +5704,13 @@ void fake_servent_func(long s_id){//zxc
 				servent_tunnel_work_over[send_target][s_id]=0;        
 				servent_transmit_data[send_target][s_id].from = send_target;
 				servent_transmit_data[send_target][s_id].to = s_id;
-				rc = pthread_create(&servent_transmit[send_target][s_id], NULL, fake_servent_handle_transmit_func, &servent_transmit_data[send_target][s_id]);
+				pthread_attr_init(&attr);       
+    				pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+				rc = pthread_create(&servent_transmit[send_target][s_id], &attr, fake_servent_handle_transmit_func, &servent_transmit_data[send_target][s_id]);
+				if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
 				servent_transmit_tunnel_ready_signal[send_target][s_id]=0 ;
 				servent_transmit_times[send_target][s_id]=1;
 
@@ -5718,7 +5867,13 @@ void fake_servent_func(long s_id){//zxc
 				servent_tunnel_work_over[s_id][send_target]=0;        
 				servent_transmit_data[s_id][send_target].from = s_id;
 				servent_transmit_data[s_id][send_target].to = send_target;
-				rc = pthread_create(&servent_transmit[s_id][send_target], NULL, fake_servent_handle_transmit_func, &servent_transmit_data[s_id][send_target]);
+				pthread_attr_init(&attr);       
+    				pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+				rc = pthread_create(&servent_transmit[s_id][send_target], &attr, fake_servent_handle_transmit_func, &servent_transmit_data[s_id][send_target]);
+				if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
 				servent_transmit_tunnel_ready_signal[s_id][send_target]=0 ;
 				servent_transmit_times[s_id][send_target]=1;
 				
@@ -5727,7 +5882,13 @@ void fake_servent_func(long s_id){//zxc
 				servent_tunnel_work_over[send_target][s_id]=0;        
 				servent_transmit_data[send_target][s_id].from = send_target;
 				servent_transmit_data[send_target][s_id].to = s_id;
-				rc = pthread_create(&servent_transmit[send_target][s_id], NULL, fake_servent_handle_transmit_func, &servent_transmit_data[send_target][s_id]);
+				pthread_attr_init(&attr);       
+    				pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+				rc = pthread_create(&servent_transmit[send_target][s_id], &attr, fake_servent_handle_transmit_func, &servent_transmit_data[send_target][s_id]);
+				if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
 				servent_transmit_tunnel_ready_signal[send_target][s_id]=0 ;
 				servent_transmit_times[send_target][s_id]=1;
 
@@ -5918,12 +6079,17 @@ void *fake_servent_thread_func(void *threadid) {// 1 thread = 5 bots
     tid = (long)threadid;
     
     
-    
-    while(fake_servent_thread_work_over[tid] != 1){
+   
+    while(fake_servent_thread_work_over[tid/5] != 1){
 		
 		sleep(2);
 		for(i=0;i<5;i++){
-		fake_servent_func(5*tid+i);
+		
+		
+				
+		fake_servent_func(NUM_SERVENT_BOTS+tid+i);
+		sleep(1);
+		//printf("%d..*.*.*.\n", NUM_SERVENT_BOTS+tid+i);
 		}		
 		
 		
@@ -5947,6 +6113,7 @@ void *servent_thread_func(void *threadid) {// 1 thread = 5 bots
 		sleep(2);
 		for(i=0;i<500;i++){
 		servent_func(500*tid+i);
+		sleep(1);
 		}
 		
 		
@@ -5968,6 +6135,8 @@ void *client_thread_func(void *threadid) {// 1 thread = 5 bots
 		sleep(2);
 		for(i=0;i<500;i++){
 		client_func(500*tid+i);
+		sleep(1);
+		
 		}
 		
 	
@@ -5992,9 +6161,10 @@ void program_over(int signal){
 		client_thread_work_over[i]=1;
 	    	
 	    }
-	    for (i = (NUM_SERVENT_BOTS/500); i < (NUM_SERVENT_BOTS/500)+(NUM_FAKE_SERVENT_BOTS/5); i++) { // /1000
-					
+	    for (i = 0; i < (NUM_FAKE_SERVENT_BOTS/5); i++) { // /1000
+		
 		fake_servent_thread_work_over[i]=1;
+		
 	    	
 	    }   
 	   /* for (i = 0; i < NUM_SERVENT_BOTS; i++) {
@@ -6062,7 +6232,7 @@ void init_client_master(){
 	
     int i,j,a;
     for (i = 0; i < NUM_CLIENT_BOTS; i++) {
-    for (j = 0; j < NUM_SERVENT_BOTS; j++) {//***- NUM_SERVENT_BOTS
+    for (j = 0; j < 10; j++) {//***- NUM_SERVENT_BOTS
     
     
     client_master[i][j].reputation_value = reputation_value_base;//###
@@ -6420,6 +6590,18 @@ void *data_record_func(){
     char record_data[1024];
     int now_hour,now_min,now_sec;
     char string_now_hour[1024],string_now_min[1024],string_now_sec[1024];
+    char strings_start_hour[1024],strings_start_min[1024],strings_start_sec[1024];
+    int start_hour,start_min,start_sec;  
+    
+  /*  time(&current);
+   info = localtime( &current );
+   strftime(strings_start_hour,sizeof(strings_start_hour),"%H",info);
+   start_hour = atoi(strings_start_hour);	
+   strftime(strings_start_min,sizeof(strings_start_min),"%M",info);
+   start_min = atoi(strings_start_min);	
+   strftime(strings_start_sec,sizeof(strings_start_sec),"%S",info);
+   start_sec = atoi(strings_start_sec);
+   start_sec+=(60*start_min)+(60*60*start_hour);*/
     
     FILE* f;
     f = fopen("data_record.txt" , "w");
@@ -6443,7 +6625,7 @@ void *data_record_func(){
     now_sec = atoi(string_now_sec);	
     now_sec+=(60*now_min)+(60*60*now_hour);
     
-    if((now_sec - last_time_record ) >= 60 ){
+    if((now_sec - last_time_record ) >= 600 ){
     last_time_record  = now_sec;
     sprintf(record_data, "%d:vc.%d:vrc.%d:vs.%d \n",record_times ,vc ,vrc ,vs );
     record_times++;
@@ -6451,11 +6633,15 @@ void *data_record_func(){
     puts(record_data);
     }
     
+    
     }
     sprintf(record_data, "%d:vc.%d:vrc.%d:vs.%d \n",record_times ,vc ,vrc ,vs );
     fwrite( record_data, 1,strlen(record_data), f );
     puts(record_data);
     fclose(f);
+    
+    printf(" data_record_thread terminated !\n");
+    pthread_exit(NULL);
 
 
 
@@ -6485,12 +6671,15 @@ int main() {
     int a,b;
     long t;
     //FILE* f;
+    
+    pthread_attr_init(&attr);       
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); 
 
-    rc = pthread_create(&relay_station, NULL, relay_station_func, NULL);  
+    rc = pthread_create(&relay_station, &attr, relay_station_func, NULL);  
     if (rc) {
-            printf("ERORR; return code from pthread_create() is %d\n", rc);
-            exit(EXIT_FAILURE);
-    }
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
     
     for (i = 0; i < NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS; i++) {
     servent[i].detect_signal = 0;
@@ -6536,6 +6725,8 @@ int main() {
         client_bot_website_buffer_pointer[i]=0;
         client_eliminate_signal[i]=0;
         client_exchange_servent_target[i]=0;
+        client_select_pattern_signal[i] =0;
+        client_last_time_select_pattern[i]=0;
         for (j = 0; j < NUM_SERVENT_BOTS; j++){
 		
 		client_master[i][j].master_id = -1;
@@ -6578,31 +6769,58 @@ int main() {
 				    
 				}*/ 
 				
-     
+    pthread_attr_init(&attr);       
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);  
     for (i = 0; i < (NUM_SERVENT_BOTS/500); i++) { // /1000
- 	rc = pthread_create(&servent_threads[i], NULL, servent_thread_func, (void *)i);
+ 	rc = pthread_create(&servent_threads[i], &attr, servent_thread_func, (void *)i);
         
         if (rc) {
-            printf("ERORR; return code from pthread_create() is %d\n", rc);
-            exit(EXIT_FAILURE);
-        }
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
      }
-     
+    pthread_attr_init(&attr);       
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); 
      for (i = 0; i < (NUM_CLIENT_BOTS/500); i++) {  // /1000
- 	rc = pthread_create(&client_threads[i], NULL, client_thread_func, (void *)i);
+ 	rc = pthread_create(&client_threads[i], &attr, client_thread_func, (void *)i);
         
         if (rc) {
-            printf("ERORR; return code from pthread_create() is %d\n", rc);
-            exit(EXIT_FAILURE);
-        }
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
      }
-     
-     
-   
+   /* char strings_start_hour[1024],strings_start_min[1024],strings_start_sec[1024];
+    int start_hour,start_min,start_sec;   
+    char strings_now_hour[1024],strings_now_min[1024],strings_now_sec[1024];
+    int nows_hour,nows_min,nows_sec;  
+    
+   time(&current);
+   info = localtime( &current );
+   strftime(strings_start_hour,sizeof(strings_start_hour),"%H",info);
+   start_hour = atoi(strings_start_hour);	
+   strftime(strings_start_min,sizeof(strings_start_min),"%M",info);
+   start_min = atoi(strings_start_min);	
+   strftime(strings_start_sec,sizeof(strings_start_sec),"%S",info);
+   start_sec = atoi(strings_start_sec);
+   start_sec+=(60*start_min)+(60*60*start_hour);*/
  
     
     while(master_command != 0 ){
-    	
+   /*time(&current);
+   info = localtime( &current );
+   strftime(strings_now_hour,sizeof(strings_now_hour),"%H",info);
+   nows_hour = atoi(strings_now_hour);	
+   strftime(strings_now_min,sizeof(strings_now_min),"%M",info);
+   nows_min = atoi(strings_now_min);	
+   strftime(strings_now_sec,sizeof(strings_now_sec),"%S",info);
+   nows_sec = atoi(strings_now_sec);
+   nows_sec+=(60*nows_min)+(60*60*nows_hour);
+   if((nows_sec-start_sec)>= (5)){
+   printf("end!!!!!!!!!!!!!\n");
+   master_command = 0;
+   program_over(1);
+   break;
+   }*/
     	sleep(1);
     	
     	printf("enter command \n");
@@ -6611,13 +6829,14 @@ int main() {
     	printf("2. servent:fetch command from peer   client:request peer list from servent  \n");
     	printf("3. servent:request peer list from peer   client:request website from servent  \n");
     	printf("4. servent:request website from peer   client:NULL \n");	
-    		scanf("%d",&master_command);
     		
-		
-		if(master_command == 0 ) {
+    		scanf("%d",&master_command);
+    		if(master_command == 0 ) {
 			program_over(1);
 			break;
 		}
+		
+		
 		sleep(0.8);
 		
 				
@@ -6707,16 +6926,21 @@ int main() {
 				inject_signal=1;
 				init_fake_servent_peer_list();
 				for (i = 0; i < (NUM_FAKE_SERVENT_BOTS/5); i++) { // /1000
-			 	rc = pthread_create(&fake_servent_threads[i], NULL, fake_servent_thread_func, (void *)((NUM_SERVENT_BOTS/500)+i));// /1000
 				
+				pthread_attr_init(&attr);       
+    				pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); 
+			 	rc = pthread_create(&fake_servent_threads[i], &attr, fake_servent_thread_func, (void *)(i*5));// /1000
 				if (rc) {
-				    printf("ERORR; return code from pthread_create() is %d\n", rc);
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
 				    exit(EXIT_FAILURE);
 				}
+				
 			     	}
-			     	rc = pthread_create(&data_record, NULL, data_record_func, NULL);  
+			     	pthread_attr_init(&attr);       
+    				pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); 
+			     	rc = pthread_create(&data_record, &attr, data_record_func, NULL);  
 				if (rc) {
-				    printf("ERORR; return code from pthread_create() is %d\n", rc);
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
 				    exit(EXIT_FAILURE);
 				}
 				break;	
