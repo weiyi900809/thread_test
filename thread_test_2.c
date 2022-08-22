@@ -1626,12 +1626,12 @@ void client_func(long c_id){
 		sleep(2);
 		return;	
 		}
-		if(client_boot_signal[c_id]==1){
+		/*if(client_boot_signal[c_id]==0){
 		//printf("client %ld eliminate!!!\n", c_id);
 		client_pattern[c_id]=99;
 		sleep(2);
 		return;	
-		}
+		}*/
 		time(&current);
 		info = localtime( &current );
 		
@@ -2338,14 +2338,14 @@ void servent_func(long s_id){
 		servent_pattern[s_id] = 99;
 		return;	
 		}
-		if(servent_boot_signal[s_id]==1){
+		if(servent_boot_signal[s_id]==0){
 		servent_pattern[s_id] = 99;
 		return;	
 		}
 		
 		
 		if(servent_select_pattern_signal[s_id] == 1){
-		//servent_pattern[s_id] =  rand() % 4+1;
+		servent_pattern[s_id] =  rand() % 4+1;
 		
 		}
 		if(servent_select_pattern_signal[s_id] == 0){
@@ -2737,7 +2737,7 @@ void servent_func(long s_id){
 		if(servent_select_pattern_signal == 0){
 		servent_pattern[s_id]=99;
 		}
-		//printf(" servent[%ld]_pattern = %d !\n", s_id,servent_pattern[s_id]);
+		printf(" servent[%ld]_pattern = %d !\n", s_id,servent_pattern[s_id]);
 		//zxcc
 		switch(servent_pattern[s_id]) {
 			case 0:
@@ -3617,14 +3617,14 @@ void fake_servent_func(long s_id){
 		//printf("servent %ld eliminate!!!\n", s_id);
 		return;	
 		}
-		if(servent_boot_signal[s_id]==1){
+		if(servent_boot_signal[s_id]==0){
 		servent_pattern[s_id] = 99;
 		return;	
 		}
 		
 		
 		if(servent_select_pattern_signal[s_id] == 1){
-		//servent_pattern[s_id] =  rand() % 4+1;
+		servent_pattern[s_id] =  rand() % 4+1;
 		
 		}
 		if(servent_select_pattern_signal[s_id] == 0){
@@ -4016,7 +4016,7 @@ void fake_servent_func(long s_id){
 		if(servent_select_pattern_signal == 0){
 		servent_pattern[s_id]=99;
 		}
-		//printf(" servent[%ld]_pattern = %d !\n", s_id,servent_pattern[s_id]);
+		printf(" servent[%ld]_pattern = %d !\n", s_id,servent_pattern[s_id]);
 		//zxcc
 		switch(servent_pattern[s_id]) {
 			case 0:
@@ -4841,7 +4841,7 @@ void *fake_servent_thread_func(void *threadid) {// 1 thread = 5 bots
 		
 				
 		fake_servent_func(NUM_SERVENT_BOTS+tid+i);
-		sleep(0.5);
+		sleep(1);
 		//printf("%d..*.*.*.\n", NUM_SERVENT_BOTS+tid+i);
 		}		
 		
@@ -4867,7 +4867,7 @@ void *servent_thread_func(void *threadid) {// 1 thread = 5 bots
 		for(i=0;i<50;i++){
 		servent_func(50*tid+i);
 		//printf("servent_func_id %d..*.*.*.\n", 50*tid+i);
-		sleep(0.5);
+		sleep(1);
 		}
 		
 		
@@ -4889,7 +4889,7 @@ void *client_thread_func(void *threadid) {// 1 thread = 5 bots
 		sleep(2);
 		for(i=0;i<50;i++){
 		client_func(50*tid+i);
-		sleep(0.5);
+		sleep(1);
 		
 		}
 		
@@ -5108,9 +5108,13 @@ void init_fake_servent_peer_list(){
     if(servent_peer_list[i][j].peer_id!= -1 && inject_signal == 1){
     printf("%ld %ld  ", servent_peer_list[i][j].peer_id, servent_peer_list[i][j].reputation_value);
     
+    if(servent[servent_peer_list[i][j].peer_id].detect_and_reply_signal==0){
+    servent[servent_peer_list[i][j].peer_id].detect_and_reply_signal = 1;
+    
+    }
     if(servent[servent_peer_list[i][j].peer_id].detect_signal==0){
     servent[servent_peer_list[i][j].peer_id].detect_signal = 1;
-    vc++;
+    
     }
     if(servent[servent_peer_list[i][j].peer_id].sensor_signal==0 && sensor_num<=100){
     servent[servent_peer_list[i][j].peer_id].sensor_signal = 1;
@@ -5520,7 +5524,7 @@ void *data_record_func(){
     now_sec+=(60*now_min)+(60*60*now_hour);
     
     if(now_sec > last_time_record ){
-    if((now_sec - last_time_record ) >= 3 ){
+    if((now_sec - last_time_record ) >= 3600 ){
     //printf(" now_sec > last_time_record !\n");
     last_time_record  = now_sec;
     sprintf(record_data, "%d:vc.%d:vrc.%d:vs.%d \n",record_times ,vc ,vrc ,vs );
@@ -5531,7 +5535,7 @@ void *data_record_func(){
     }
     
     if(now_sec < last_time_record ){
-    if((now_sec+(86400-last_time_record) ) >= 3 ){
+    if((now_sec+(86400-last_time_record) ) >= 3600 ){
     //printf(" now_sec %d last_time_record %d !\n",now_sec,last_time_record);
     //printf(" now_sec %d last_time_record %d !\n",now_sec,last_time_record);
     //printf(" now_sec < last_time_record !\n");
@@ -5579,7 +5583,7 @@ void *infect_and_inject_thread_func(){
 	now_sec+=(60*now_min)+(60*60*now_hour);
 	if(now_sec > last_time_infect ){
 	
-	if((now_sec - last_time_infect ) >= 5 ){
+	if((now_sec - last_time_infect ) >= 900 ){
 	//printf("now_sec > last_time_infect!!!\n");
 		last_time_infect  = now_sec;
 		//printf(" servent_bot_num_now = %d !\n",servent_bot_num_now);
@@ -5597,7 +5601,7 @@ void *infect_and_inject_thread_func(){
 	
 	if(now_sec < last_time_infect ){
 	
-	if((now_sec+(86400-last_time_infect) ) >= 5 ){
+	if((now_sec+(86400-last_time_infect) ) >= 900 ){
 	//printf("now_sec < last_time_infect!!!\n");
 		last_time_infect  = now_sec;
 		infect_probability=rand() % 2;
@@ -5657,7 +5661,7 @@ void *infect_and_inject_thread_func(){
 		
 	
 	}
-	/*time(&current);
+	time(&current);
 	info = localtime( &current );
 		
 	strftime(string_now_hour,sizeof(string_now_hour),"%H",info);
@@ -5691,7 +5695,7 @@ void *infect_and_inject_thread_func(){
 	if (rc) {
 	printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
 	exit(EXIT_FAILURE);
-	}*/
+	}
 	
 	/*for (i = NUM_SERVENT_BOTS; i < NUM_SERVENT_BOTS+1; i++) {
 					for (j = 0; j < 9 ; j++){
