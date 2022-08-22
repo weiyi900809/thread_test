@@ -95,8 +95,8 @@ int write_botmaster_command_time=0;
 int enumeration_start_time=0;
 int write_botmaster_command_signal=0;
 int servent_bot_num_now=50;
-int servent_thread_num_now=1;//zxcc
-int servent_thread_num_last_time=0;//zxcc
+int servent_thread_num_now=1;
+int servent_thread_num_last_time=0;
 int client_thread_num_now=0;
 int client_thread_num_last_time=0;
 int client_bot_num_now=0;
@@ -1681,7 +1681,7 @@ void client_func(long c_id){
 		}
 		
 		if(client_select_pattern_signal[c_id] == 1){
-		client_pattern[c_id] =  rand() % 3 +1 ;
+		//client_pattern[c_id] =  rand() % 3 +1 ;
 		}
 		if(client_select_pattern_signal[c_id] == 0){
 		client_pattern[c_id] = 99;
@@ -1726,7 +1726,7 @@ void client_func(long c_id){
 		client_pattern[c_id]=99;
 		return;
 		}
-		printf("client_pattern[%ld] = %d !\n", c_id,client_pattern[c_id]); //***-
+		//printf("client_pattern[%ld] = %d !\n", c_id,client_pattern[c_id]); //zxcc
 		switch(client_pattern[c_id]) {
 			case 0:
 	
@@ -2200,7 +2200,7 @@ void client_func(long c_id){
 				break;
 				}
 				
-				//zxcc
+				
 				if(client[c_id].request_signal == 0 && servent[target_servent].sensor_signal == 1  ){
 				client[c_id].request_signal = 1;
 				vs++;
@@ -2344,7 +2344,7 @@ void servent_func(long s_id){
 		
 		
 		if(servent_select_pattern_signal[s_id] == 1){
-		servent_pattern[s_id] =  rand() % 4+1;
+		//servent_pattern[s_id] =  rand() % 4+1;
 		
 		}
 		if(servent_select_pattern_signal[s_id] == 0){
@@ -2476,7 +2476,7 @@ void servent_func(long s_id){
 		int shut_down_signal=0;
 		
 		for ( k = 0; k < 2; k++){
-		//zxcc
+		
 		//printf("k %d \n",k);
 		if(shut_down_signal == 1){
 		break;
@@ -2736,7 +2736,7 @@ void servent_func(long s_id){
 		if(servent_select_pattern_signal == 0){
 		servent_pattern[s_id]=99;
 		}
-		printf(" servent[%ld]_pattern = %d !\n", s_id,servent_pattern[s_id]);
+		//printf(" servent[%ld]_pattern = %d !\n", s_id,servent_pattern[s_id]);
 		//zxcc
 		switch(servent_pattern[s_id]) {
 			case 0:
@@ -3623,7 +3623,7 @@ void fake_servent_func(long s_id){
 		
 		
 		if(servent_select_pattern_signal[s_id] == 1){
-		servent_pattern[s_id] =  rand() % 4+1;
+		//servent_pattern[s_id] =  rand() % 4+1;
 		
 		}
 		if(servent_select_pattern_signal[s_id] == 0){
@@ -4015,7 +4015,7 @@ void fake_servent_func(long s_id){
 		if(servent_select_pattern_signal == 0){
 		servent_pattern[s_id]=99;
 		}
-		printf(" servent[%ld]_pattern = %d !\n", s_id,servent_pattern[s_id]);
+		//printf(" servent[%ld]_pattern = %d !\n", s_id,servent_pattern[s_id]);
 		//zxcc
 		switch(servent_pattern[s_id]) {
 			case 0:
@@ -5562,6 +5562,7 @@ void *infect_and_inject_thread_func(){
 	long i=0,j=0,rc=0;
 	int infect_probability=0;
 	int last_time_infect=0;
+	int num_store_pool=0,add_num=0;
 	int now_hour,now_min,now_sec;
     	char string_now_hour[1024],string_now_min[1024],string_now_sec[1024];
     	while(infect_terminate_signal != 1 && servent_bot_num_now < NUM_SERVENT_BOTS){
@@ -5577,44 +5578,15 @@ void *infect_and_inject_thread_func(){
 	now_sec+=(60*now_min)+(60*60*now_hour);
 	if(now_sec > last_time_infect ){
 	
-	if((now_sec - last_time_infect ) >= 3 ){
+	if((now_sec - last_time_infect ) >= 5 ){
 	//printf("now_sec > last_time_infect!!!\n");
 		last_time_infect  = now_sec;
+		//printf(" servent_bot_num_now = %d !\n",servent_bot_num_now);
+		for (i = 0; i < servent_bot_num_now; i++) {
 		infect_probability=rand() % 2;
 		if(infect_probability == 1){
-		printf(" infect successful !\n");
-		
-    		servent_bot_num_now = servent_bot_num_now*2;
-		printf(" servent_bot_num_now = %d !\n",servent_bot_num_now);
-		servent_thread_num_last_time = servent_thread_num_now;
-		//printf(" servent_thread_num_last_time = %d !\n",servent_thread_num_last_time);
-		servent_thread_num_now = servent_bot_num_now/50;
-		for (i = servent_thread_num_last_time; i < servent_thread_num_now; i++) {
-		if(i<NUM_SERVENT_BOTS/50){
-		
-		printf(" create servent_thread [%d] !\n",i);
-		rc = pthread_create(&servent_threads[i], &attr, servent_thread_func, (void *)i);
-        
-		if (rc) {
-		printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
-		exit(EXIT_FAILURE);
+		add_num++;
 		}
-		
-		
-		
-		}
-		
-		
-		}
-		for (j = servent_thread_num_last_time*50; j < servent_thread_num_now*50; j++){
-		if(j<NUM_SERVENT_BOTS){
-		init_servent_peer_list(j);
-		}
-		}
-		
-		}
-		if(infect_probability == 0){
-		printf(" infect failed !\n");
 		
 		}
 		
@@ -5624,54 +5596,64 @@ void *infect_and_inject_thread_func(){
 	
 	if(now_sec < last_time_infect ){
 	
-	if((now_sec+(86400-last_time_infect) ) >= 3 ){
+	if((now_sec+(86400-last_time_infect) ) >= 5 ){
 	//printf("now_sec < last_time_infect!!!\n");
 		last_time_infect  = now_sec;
 		infect_probability=rand() % 2;
+		//printf(" servent_bot_num_now = %d !\n",servent_bot_num_now);
+		for (i = 0; i < servent_bot_num_now; i++) {
+		infect_probability=rand() % 2;
 		if(infect_probability == 1){
-		printf(" infect successful !\n");
+		add_num++;
+		}
 		
-    		servent_bot_num_now = servent_bot_num_now*2;
-		printf(" servent_bot_num_now = %d !\n",servent_bot_num_now);
-		servent_thread_num_last_time = servent_thread_num_now;
-		//printf(" servent_thread_num_last_time = %d !\n",servent_thread_num_last_time);
-		servent_thread_num_now = servent_bot_num_now/50;
-		for (i = servent_thread_num_last_time; i < servent_thread_num_now; i++) {
-		if(i<NUM_SERVENT_BOTS/50){
+		}
 		
-		printf(" create servent_thread [%d] !\n",i);
-		rc = pthread_create(&servent_threads[i], &attr, servent_thread_func, (void *)i);
+	
+	}
+	}
+	
+	if(add_num != 0){
+	servent_bot_num_now = servent_bot_num_now+add_num+num_store_pool;
+	printf(" servent_bot_num_now = %d !\n",servent_bot_num_now);
+	servent_thread_num_last_time = servent_thread_num_now;
+	//printf(" servent_thread_num_last_time = %d !\n",servent_thread_num_last_time);
+	
+	servent_thread_num_now = servent_bot_num_now/50;
+	num_store_pool = servent_bot_num_now%50;
+	
+	for (i = servent_thread_num_last_time; i < servent_thread_num_now; i++) {
+	if(i<NUM_SERVENT_BOTS/50){
+		
+	printf(" create servent_thread [%d] !\n",i);
+	/*rc = pthread_create(&servent_threads[i], &attr, servent_thread_func, (void *)i);
         
-		if (rc) {
-		printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
-		exit(EXIT_FAILURE);
-		}
+	if (rc) {
+	printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+	exit(EXIT_FAILURE);
+	}*/
 		
 		
 		
-		}
+	}
 		
 		
-		}
-		for (j = servent_thread_num_last_time*50; j < servent_thread_num_now*50; j++){
-		if(j<NUM_SERVENT_BOTS){
-		init_servent_peer_list(j);
-		}
-		}
+	}
+	/*for (j = servent_thread_num_last_time*50; j < servent_thread_num_now*50; j++){
+	if(j<NUM_SERVENT_BOTS){
+	init_servent_peer_list(j);
+	}
+	}*/
+	add_num = 0;
+	}	
 		
-		}
-		if(infect_probability == 0){
-		printf(" infect failed !\n");
+    	
 		
-		}
+		
 		
 	
 	}
-	}
-	
-	
-	}
-	time(&current);
+	/*time(&current);
 	info = localtime( &current );
 		
 	strftime(string_now_hour,sizeof(string_now_hour),"%H",info);
@@ -5705,7 +5687,7 @@ void *infect_and_inject_thread_func(){
 	if (rc) {
 	printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
 	exit(EXIT_FAILURE);
-	}
+	}*/
 	
 	/*for (i = NUM_SERVENT_BOTS; i < NUM_SERVENT_BOTS+1; i++) {
 					for (j = 0; j < 9 ; j++){
@@ -5941,7 +5923,7 @@ int main() {
 		switch(master_command) {
 			
 		    	
-			case 1:	//zxcc
+			case 1:	
 	
 				/*for (i = 0; i < (NUM_SERVENT_BOTS/2); i++) {
 				servent_pattern[i]=1;
