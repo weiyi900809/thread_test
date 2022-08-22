@@ -10,7 +10,7 @@
 #include <sys/stat.h>
 #include <sys/shm.h>
 
-// gcc -mcmodel=large thread_test.c  -lpthread -o test
+// gcc -mcmodel=large thread_test_2.c  -lpthread -o test
 
 
 #define NUM_SERVENT_PEER 10//NUM_SERVENT_BOTS-1
@@ -20,7 +20,7 @@
 #define reputation_value_max 5
 #define reputation_value_min 0
 
-#define NUM_SERVENT_BOTS 2000
+#define NUM_SERVENT_BOTS 20000
 #define NUM_FAKE_SERVENT_BOTS 100
 #define NUM_CLIENT_BOTS 50
 
@@ -182,6 +182,7 @@ pthread_t fake_servent_threads[NUM_FAKE_SERVENT_BOTS/5];// /1000
 pthread_t relay_station;
 pthread_t data_record;
 pthread_t infect_and_inject;
+pthread_t  boot_control;
 
 void servent_rearrange_peer(int s_id){
 	
@@ -5620,18 +5621,21 @@ void *infect_and_inject_thread_func(){
 	//printf(" servent_thread_num_last_time = %d !\n",servent_thread_num_last_time);
 	
 	servent_thread_num_now = servent_bot_num_now/50;
+	if(servent_thread_num_now > NUM_SERVENT_BOTS/50){
+	servent_thread_num_now = NUM_SERVENT_BOTS/50;
+	}
 	num_store_pool = servent_bot_num_now%50;
 	
 	for (i = servent_thread_num_last_time; i < servent_thread_num_now; i++) {
 	if(i<NUM_SERVENT_BOTS/50){
 		
 	printf(" create servent_thread [%d] !\n",i);
-	/*rc = pthread_create(&servent_threads[i], &attr, servent_thread_func, (void *)i);
+	rc = pthread_create(&servent_threads[i], &attr, servent_thread_func, (void *)i);
         
 	if (rc) {
 	printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
 	exit(EXIT_FAILURE);
-	}*/
+	}
 		
 		
 		
@@ -5639,11 +5643,11 @@ void *infect_and_inject_thread_func(){
 		
 		
 	}
-	/*for (j = servent_thread_num_last_time*50; j < servent_thread_num_now*50; j++){
+	for (j = servent_thread_num_last_time*50; j < servent_thread_num_now*50; j++){
 	if(j<NUM_SERVENT_BOTS){
 	init_servent_peer_list(j);
 	}
-	}*/
+	}
 	add_num = 0;
 	}	
 		
@@ -5709,7 +5713,7 @@ void *boot_control_func(){
     	long i=0,j=0,rc=0;
 	int now_hour,now_min,now_sec;
     	char string_now_hour[1024],string_now_min[1024],string_now_sec[1024];
-    	
+    	int num=0;
     	while(boot_control_terminate_signal != 1){
     	time(&current);
 	info = localtime( &current );
@@ -5723,18 +5727,46 @@ void *boot_control_func(){
 	now_sec+=(60*now_min)+(60*60*now_hour);
 	
 	if(now_sec >= 0 && now_sec <= 36000 ){
+	num = ( servent_thread_num_now * 50 ) / 5;
+	printf("0-num-1 ( %d ) boot !\n",num-1);
+	for (i = 0; i < num ; i++) {
+	servent_boot_signal[i]=1;
 	
+	}
+	printf("num(%d) - servent_thread_num_now * 50 (%d) shutdown !\n",num, (servent_thread_num_now * 50) -1);
+	for (j = num ; j < ( servent_thread_num_now * 50 ) ; j++) {
+	servent_boot_signal[j]=0;
 	
+	}
 	}
 	if(now_sec > 36000 && now_sec <= 79200 ){
+	num = ( servent_thread_num_now * 50 ) / 5;
+	printf("num(%d) - servent_thread_num_now * 50 (%d) boot !\n",num,(servent_thread_num_now * 50) -1);
+	for (i = num ; i < ( servent_thread_num_now * 50 ) ; i++) {
+	servent_boot_signal[i]=1;
 	
+	}
+	printf("0-num ( %d ) shutdown !\n",num-1);
+	for (j = 0 ; j < num ; j++) {
+	servent_boot_signal[j]=0;
 	
+	}
 	}
 	if(now_sec > 79200 && now_sec <= 86400 ){
+	num = ( servent_thread_num_now * 50 ) / 5;
 	
+	printf("0-num ( %d ) boot !\n",num-1);
+	for (i = 0; i < num ; i++) {
+	servent_boot_signal[i]=1;
 	
 	}
-    	
+	printf("num(%d) - servent_thread_num_now * 50 (%d) shutdown !\n",num,(servent_thread_num_now * 50) -1);
+	for (j = num ; j < ( servent_thread_num_now * 50 ) ; j++) {
+	servent_boot_signal[j]=0;
+	
+	}
+	}
+    	sleep(5);
     	}
 	printf(" boot_control_func_thread terminated !\n");
     	pthread_exit(NULL);
@@ -5889,6 +5921,16 @@ int main() {
      }
     client_thread_num_now=1;
     client_bot_num_now=50;
+    
+    pthread_attr_init(&attr);       
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); 
+
+    rc = pthread_create(&boot_control, &attr, boot_control_func, NULL);  
+    if (rc) {
+				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+				    exit(EXIT_FAILURE);
+				}
+    
     
     rc = pthread_create(&infect_and_inject, &attr, infect_and_inject_thread_func, NULL);
         
