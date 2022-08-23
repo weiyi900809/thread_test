@@ -170,7 +170,7 @@ int client_exchange_servent_target[NUM_CLIENT_BOTS];
 int client_eliminate_signal[NUM_CLIENT_BOTS];
 int client_boot_signal[NUM_CLIENT_BOTS];
 struct tm *info;
-time_t current;
+time_t current = 0;
 
 
 pthread_mutex_t mutex[NUM_BOTS][NUM_BOTS];
@@ -5501,6 +5501,7 @@ void *data_record_func(){
     char strings_start_hour[1024],strings_start_min[1024],strings_start_sec[1024];
     int start_hour,start_min,start_sec;  
     
+    
   /*  time(&current);
    info = localtime( &current );
    strftime(strings_start_hour,sizeof(strings_start_hour),"%H",info);
@@ -5520,17 +5521,24 @@ void *data_record_func(){
     }
     
     while(data_record_terminate_signal != 1){
-    now_sec1=0;
+    
     time(&current);
     info = localtime( &current );
+   
 	
     strftime(string_now_hour,sizeof(string_now_hour),"%H",info);
-    now_hour = atoi(string_now_hour);	
+    now_hour = atoi(string_now_hour);
     strftime(string_now_min,sizeof(string_now_min),"%M",info);
     now_min = atoi(string_now_min);	
     strftime(string_now_sec,sizeof(string_now_sec),"%S",info);
     now_sec1 = atoi(string_now_sec);	
+    
+    /*now_hour = times->tm_hour;
+    now_min = times->tm_min;
+    now_sec1 = times->tm_sec;*/
     now_sec1+=(60*now_min)+(60*60*now_hour);
+    
+    
     //printf(" now_sec %d last_time_record %d !\n",now_sec1,last_time_record);
     
     //scanf("%d %d",&now_sec1,&last_time_record);
@@ -5538,8 +5546,10 @@ void *data_record_func(){
     if(now_sec1 > last_time_record ){
     if((now_sec1 - last_time_record ) >= 3600 ){//zzzz NUM_OF_SELECT_PATTERN_TIMES*2
     printf(" now_sec > last_time_record !\n");
-    printf(" now_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
     printf(" now_sec %d last_time_record %d !\n",now_sec1,last_time_record);
+    //printf(" now_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
+    //printf(" timesss %s!\n",timesss);
+    
     last_time_record  = now_sec1;
     sprintf(record_data, "%d:vc.%d:vrc.%d:vs.%d:now_sec.%d \n",record_times ,vc ,vrc ,vs ,now_sec1  );
     record_times++;
@@ -5550,10 +5560,12 @@ void *data_record_func(){
     
     else if(now_sec1 < last_time_record ){
     if((now_sec1+(86400-last_time_record) ) >= 3600 ){
-    printf(" now_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
+    //printf(" now_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
+    //printf(" timesss %s!\n",timesss);
+    printf(" now_sec < last_time_record !\n");
     printf(" now_sec %d last_time_record %d !\n",now_sec1,last_time_record);
     //printf(" now_sec %d last_time_record %d !\n",now_sec,last_time_record);
-    printf(" now_sec < last_time_record !\n");
+    
     last_time_record  = now_sec1;
     sprintf(record_data, "%d:vc.%d:vrc.%d:vs.%d:now_sec.%d \n",record_times ,vc ,vrc ,vs ,now_sec1  );
     record_times++;
@@ -5587,6 +5599,7 @@ void *infect_and_inject_thread_func(){
     	char string_now_hour[1024],string_now_min[1024],string_now_sec[1024];
     	while(infect_terminate_signal != 1 && servent_bot_num_now < NUM_SERVENT_BOTS){
     	now_sec = 0 ;
+    	
     	time(&current);
 	info = localtime( &current );
 		
@@ -5599,7 +5612,8 @@ void *infect_and_inject_thread_func(){
 	now_sec+=(60*now_min)+(60*60*now_hour);
 	if(now_sec > last_time_infect ){
 	
-	if((now_sec - last_time_infect ) >= 900){ // zzzz NUM_OF_SELECT_PATTERN_TIMES/2 
+	if((now_sec - last_time_infect ) >= 900){
+	printf(" now_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec); // zzzz NUM_OF_SELECT_PATTERN_TIMES/2 
 	printf("now_sec > last_time_infect!!!!!!!!\n");
 		last_time_infect  = now_sec;
 		printf(" servent_bot_num_now = %d !\n",servent_bot_num_now);
@@ -5618,6 +5632,7 @@ void *infect_and_inject_thread_func(){
 	else if(now_sec < last_time_infect ){
 	
 	if((now_sec+(86400-last_time_infect) ) >= 900 ){
+	printf(" now_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
 	printf("now_sec < last_time_infect!!!!!!!!\n");
 		last_time_infect  = now_sec;
 		infect_probability=rand() % 2;
@@ -5746,6 +5761,7 @@ void *boot_control_func(){
 	strftime(string_now_sec,sizeof(string_now_sec),"%S",info);
 	now_sec = atoi(string_now_sec);	
 	now_sec+=(60*now_min)+(60*60*now_hour);
+	printf(" now_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec); 
 	for (i = NUM_SERVENT_BOTS; i < NUM_FAKE_SERVENT_BOTS+NUM_SERVENT_BOTS ; i++) {
 	servent_boot_signal[i]=1;	
 	}
@@ -5815,7 +5831,9 @@ int main() {
     long j=0;
     int a,b;
     long t;
-    //FILE* f;
+    if( putenv( "TZ=EST" ) == -1 ){
+	printf( "Unable to set TZ\n" );exit( 1 );
+    }
     
     pthread_attr_init(&attr);       
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); 
