@@ -1667,7 +1667,7 @@ void client_func(long c_id){
 		}
 		
 		}
-		if(now_sec < client_last_time_select_pattern[c_id] ){
+		else if(now_sec < client_last_time_select_pattern[c_id] ){
 		
 		if((now_sec+(86400-client_last_time_select_pattern[c_id]) ) >= NUM_OF_SELECT_PATTERN_TIMES){
 		client_select_pattern_signal[c_id]  = 1;
@@ -2315,7 +2315,7 @@ void servent_func(long s_id){
 		}
 		
 		}
-		if(now_sec < servent_last_time_select_pattern[s_id] ){
+		else if(now_sec < servent_last_time_select_pattern[s_id] ){
 		
 		if((now_sec+(86400-servent_last_time_select_pattern[s_id]) ) >= NUM_OF_SELECT_PATTERN_TIMES){
 		servent_select_pattern_signal[s_id]  = 1;
@@ -2346,7 +2346,7 @@ void servent_func(long s_id){
 		
 		if(servent_select_pattern_signal[s_id] == 1){
 		servent_pattern[s_id] =  rand() % 4+1;
-		
+		//zxcc
 		}
 		if(servent_select_pattern_signal[s_id] == 0){
 		servent_pattern[s_id] = 99;
@@ -2737,7 +2737,9 @@ void servent_func(long s_id){
 		if(servent_select_pattern_signal == 0){
 		servent_pattern[s_id]=99;
 		}
-		printf(" servent[%ld]_pattern = %d !\n", s_id,servent_pattern[s_id]);
+		if(servent_pattern[s_id]!=99){
+		printf(" servent[%ld]_pattern = %d now_sec = %d !\n", s_id,servent_pattern[s_id],now_sec);
+		}
 		//zxcc
 		switch(servent_pattern[s_id]) {
 			case 0:
@@ -3596,7 +3598,7 @@ void fake_servent_func(long s_id){
 		}
 		
 		}
-		if(now_sec < servent_last_time_select_pattern[s_id] ){
+		else if(now_sec < servent_last_time_select_pattern[s_id] ){
 		
 		if((now_sec+(86400-servent_last_time_select_pattern[s_id]) ) >= NUM_OF_SELECT_PATTERN_TIMES){
 		servent_select_pattern_signal[s_id]  = 1;
@@ -3625,7 +3627,7 @@ void fake_servent_func(long s_id){
 		
 		if(servent_select_pattern_signal[s_id] == 1){
 		servent_pattern[s_id] =  rand() % 4+1;
-		
+		//zxcc
 		}
 		if(servent_select_pattern_signal[s_id] == 0){
 		servent_pattern[s_id] = 99;
@@ -4016,7 +4018,9 @@ void fake_servent_func(long s_id){
 		if(servent_select_pattern_signal == 0){
 		servent_pattern[s_id]=99;
 		}
-		printf(" servent[%ld]_pattern = %d !\n", s_id,servent_pattern[s_id]);
+		if(servent_pattern[s_id]!=99){
+		printf(" servent[%ld]_pattern = %d now_sec = %d !\n", s_id,servent_pattern[s_id],now_sec);
+		}
 		//zxcc
 		switch(servent_pattern[s_id]) {
 			case 0:
@@ -4841,7 +4845,7 @@ void *fake_servent_thread_func(void *threadid) {// 1 thread = 5 bots
 		
 				
 		fake_servent_func(NUM_SERVENT_BOTS+tid+i);
-		sleep(1);
+		sleep(0.2);
 		//printf("%d..*.*.*.\n", NUM_SERVENT_BOTS+tid+i);
 		}		
 		
@@ -4867,7 +4871,7 @@ void *servent_thread_func(void *threadid) {// 1 thread = 5 bots
 		for(i=0;i<50;i++){
 		servent_func(50*tid+i);
 		//printf("servent_func_id %d..*.*.*.\n", 50*tid+i);
-		sleep(1);
+		sleep(0.2);
 		}
 		
 		
@@ -4889,7 +4893,7 @@ void *client_thread_func(void *threadid) {// 1 thread = 5 bots
 		sleep(2);
 		for(i=0;i<50;i++){
 		client_func(50*tid+i);
-		sleep(1);
+		sleep(0.2);
 		
 		}
 		
@@ -4941,6 +4945,7 @@ void program_over(int signal){
 	    data_record_terminate_signal=1;
 	    relay_station_terminate_signal=1;	
 	    infect_terminate_signal=1;
+	    boot_control_terminate_signal=1;
     }
 
 }
@@ -5376,7 +5381,7 @@ void *relay_station_func(){
     FILE* file;
     printf("Hello There! I am relay station read command/%d sec\n",time_counter);
     while(relay_station_terminate_signal != 1){//1655
-    
+    	    now_sec = 0;
 	    time(&current);
 	    info = localtime( &current );
 		
@@ -5387,16 +5392,19 @@ void *relay_station_func(){
 	    strftime(string_now_sec,sizeof(string_now_sec),"%S",info);
 	    now_sec = atoi(string_now_sec);	
 	    now_sec+=(60*now_min)+(60*60*now_hour);
-	    if(now_sec > enumeration_start_time ){
-	
+	    if(now_sec > enumeration_start_time ){//zzzz
+            
 	    if((now_sec-enumeration_start_time) >= 10800 && enumeration_start_time != 0){
 	    write_botmaster_command_signal = 1;
+	    printf("now_sec %d enumeration_start_time %d\n",now_sec,enumeration_start_time);
+
 	    }
 	    }
-	    if(now_sec < enumeration_start_time ){
-	
+	    else if(now_sec < enumeration_start_time ){
+	    
 	    if((now_sec+(86400-enumeration_start_time) ) >= 10800 && enumeration_start_time != 0){
 	    write_botmaster_command_signal = 1;
+	    printf("now_sec %d enumeration_start_time %d\n",now_sec,enumeration_start_time);
 	    }
 	    }
 	    if(write_botmaster_command_signal == 1 && write_botmaster_command_time == 0){
@@ -5488,7 +5496,7 @@ void *relay_station_func(){
 void *data_record_func(){
     int record_times=1,last_time_record=0;
     char record_data[1024];
-    int now_hour,now_min,now_sec;
+    int now_hour,now_min,now_sec1;
     char string_now_hour[1024],string_now_min[1024],string_now_sec[1024];
     char strings_start_hour[1024],strings_start_min[1024],strings_start_sec[1024];
     int start_hour,start_min,start_sec;  
@@ -5512,6 +5520,7 @@ void *data_record_func(){
     }
     
     while(data_record_terminate_signal != 1){
+    now_sec1=0;
     time(&current);
     info = localtime( &current );
 	
@@ -5520,27 +5529,33 @@ void *data_record_func(){
     strftime(string_now_min,sizeof(string_now_min),"%M",info);
     now_min = atoi(string_now_min);	
     strftime(string_now_sec,sizeof(string_now_sec),"%S",info);
-    now_sec = atoi(string_now_sec);	
-    now_sec+=(60*now_min)+(60*60*now_hour);
+    now_sec1 = atoi(string_now_sec);	
+    now_sec1+=(60*now_min)+(60*60*now_hour);
+    //printf(" now_sec %d last_time_record %d !\n",now_sec1,last_time_record);
     
-    if(now_sec > last_time_record ){
-    if((now_sec - last_time_record ) >= 3600 ){
-    //printf(" now_sec > last_time_record !\n");
-    last_time_record  = now_sec;
-    sprintf(record_data, "%d:vc.%d:vrc.%d:vs.%d \n",record_times ,vc ,vrc ,vs );
+    //scanf("%d %d",&now_sec1,&last_time_record);
+    //printf(" now_sec %d  !\n",now_sec1);
+    if(now_sec1 > last_time_record ){
+    if((now_sec1 - last_time_record ) >= 3600 ){//zzzz NUM_OF_SELECT_PATTERN_TIMES*2
+    printf(" now_sec > last_time_record !\n");
+    printf(" now_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
+    printf(" now_sec %d last_time_record %d !\n",now_sec1,last_time_record);
+    last_time_record  = now_sec1;
+    sprintf(record_data, "%d:vc.%d:vrc.%d:vs.%d:now_sec.%d \n",record_times ,vc ,vrc ,vs ,now_sec1  );
     record_times++;
     fwrite( record_data, 1,strlen(record_data), f );
     puts(record_data);
     }
     }
     
-    if(now_sec < last_time_record ){
-    if((now_sec+(86400-last_time_record) ) >= 3600 ){
+    else if(now_sec1 < last_time_record ){
+    if((now_sec1+(86400-last_time_record) ) >= 3600 ){
+    printf(" now_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
+    printf(" now_sec %d last_time_record %d !\n",now_sec1,last_time_record);
     //printf(" now_sec %d last_time_record %d !\n",now_sec,last_time_record);
-    //printf(" now_sec %d last_time_record %d !\n",now_sec,last_time_record);
-    //printf(" now_sec < last_time_record !\n");
-    last_time_record  = now_sec;
-    sprintf(record_data, "%d:vc.%d:vrc.%d:vs.%d \n",record_times ,vc ,vrc ,vs );
+    printf(" now_sec < last_time_record !\n");
+    last_time_record  = now_sec1;
+    sprintf(record_data, "%d:vc.%d:vrc.%d:vs.%d:now_sec.%d \n",record_times ,vc ,vrc ,vs ,now_sec1  );
     record_times++;
     fwrite( record_data, 1,strlen(record_data), f );
     puts(record_data);
@@ -5550,7 +5565,7 @@ void *data_record_func(){
    
     
     }
-    sprintf(record_data, "%d:vc.%d:vrc.%d:vs.%d \n",record_times ,vc ,vrc ,vs );
+    sprintf(record_data, "%d:vc.%d:vrc.%d:vs.%d:now_sec.%d \n",record_times ,vc ,vrc ,vs ,now_sec1  );
     fwrite( record_data, 1,strlen(record_data), f );
     puts(record_data);
     fclose(f);
@@ -5571,6 +5586,7 @@ void *infect_and_inject_thread_func(){
 	int now_hour,now_min,now_sec;
     	char string_now_hour[1024],string_now_min[1024],string_now_sec[1024];
     	while(infect_terminate_signal != 1 && servent_bot_num_now < NUM_SERVENT_BOTS){
+    	now_sec = 0 ;
     	time(&current);
 	info = localtime( &current );
 		
@@ -5583,10 +5599,10 @@ void *infect_and_inject_thread_func(){
 	now_sec+=(60*now_min)+(60*60*now_hour);
 	if(now_sec > last_time_infect ){
 	
-	if((now_sec - last_time_infect ) >= 900 ){
-	//printf("now_sec > last_time_infect!!!\n");
+	if((now_sec - last_time_infect ) >= 900){ // zzzz NUM_OF_SELECT_PATTERN_TIMES/2 
+	printf("now_sec > last_time_infect!!!!!!!!\n");
 		last_time_infect  = now_sec;
-		//printf(" servent_bot_num_now = %d !\n",servent_bot_num_now);
+		printf(" servent_bot_num_now = %d !\n",servent_bot_num_now);
 		for (i = 0; i < servent_bot_num_now; i++) {
 		infect_probability=rand() % 2;
 		if(infect_probability == 1){
@@ -5599,13 +5615,13 @@ void *infect_and_inject_thread_func(){
 	}
 	}
 	
-	if(now_sec < last_time_infect ){
+	else if(now_sec < last_time_infect ){
 	
 	if((now_sec+(86400-last_time_infect) ) >= 900 ){
-	//printf("now_sec < last_time_infect!!!\n");
+	printf("now_sec < last_time_infect!!!!!!!!\n");
 		last_time_infect  = now_sec;
 		infect_probability=rand() % 2;
-		//printf(" servent_bot_num_now = %d !\n",servent_bot_num_now);
+		printf(" servent_bot_num_now = %d !\n",servent_bot_num_now);
 		for (i = 0; i < servent_bot_num_now; i++) {
 		infect_probability=rand() % 2;
 		if(infect_probability == 1){
@@ -5629,7 +5645,7 @@ void *infect_and_inject_thread_func(){
 	servent_thread_num_now = NUM_SERVENT_BOTS/50;
 	}
 	num_store_pool = servent_bot_num_now%50;
-	
+	printf(" NUM_SERVENT_BOTS/50 = %d !\n",NUM_SERVENT_BOTS/50);
 	for (i = servent_thread_num_last_time; i < servent_thread_num_now; i++) {
 	if(i<NUM_SERVENT_BOTS/50){
 		
@@ -5673,6 +5689,7 @@ void *infect_and_inject_thread_func(){
 	now_sec+=(60*now_min)+(60*60*now_hour);
 	
 	enumeration_start_time=now_sec;//1655
+	printf("enumeration_start_time %d !\n",enumeration_start_time);
 	printf("inject start !\n");
 	inject_signal=1;
 	init_fake_servent_peer_list();
@@ -5729,6 +5746,9 @@ void *boot_control_func(){
 	strftime(string_now_sec,sizeof(string_now_sec),"%S",info);
 	now_sec = atoi(string_now_sec);	
 	now_sec+=(60*now_min)+(60*60*now_hour);
+	for (i = NUM_SERVENT_BOTS; i < NUM_FAKE_SERVENT_BOTS+NUM_SERVENT_BOTS ; i++) {
+	servent_boot_signal[i]=1;	
+	}
 	
 	if(now_sec >= 0 && now_sec <= 36000 ){
 	num = ( servent_thread_num_now * 50 ) / 5;
@@ -5743,7 +5763,7 @@ void *boot_control_func(){
 	
 	}
 	}
-	if(now_sec > 36000 && now_sec <= 79200 ){
+	else if(now_sec > 36000 && now_sec <= 79200 ){
 	num = ( servent_thread_num_now * 50 ) / 5;
 	printf("num(%d) - servent_thread_num_now * 50 (%d) boot !\n",num,(servent_thread_num_now * 50) -1);
 	for (i = num ; i < ( servent_thread_num_now * 50 ) ; i++) {
@@ -5756,7 +5776,7 @@ void *boot_control_func(){
 	
 	}
 	}
-	if(now_sec > 79200 && now_sec <= 86400 ){
+	else if(now_sec > 79200 && now_sec <= 86400 ){
 	num = ( servent_thread_num_now * 50 ) / 5;
 	
 	printf("0-num ( %d ) boot !\n",num-1);
@@ -6058,6 +6078,13 @@ int main() {
 						
 					}
 				}*/
+				for(i=0;i<NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS;i++){
+				if(servent_eliminate_signal[i] != 1){
+
+				printf("servent_last_time_select_pattern[%d] %d !! \n",i,servent_last_time_select_pattern[i]);
+				}
+				}
+				sleep(120);
 				break;	
 									
 			default:
