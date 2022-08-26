@@ -591,7 +591,7 @@ void client_make_command(char *func_result, int sender_id, int receive_id, int e
    		sprintf(text, "%s.%d", date,sec);//timestamp
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,";");
-   		sprintf(text, "%d",120);//effective time
+   		sprintf(text, "%d",20);//effective time
    		strncat(func_result,text ,strlen(text));
    		
    		//puts(func_result);
@@ -619,7 +619,7 @@ void client_make_command(char *func_result, int sender_id, int receive_id, int e
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,"]");
    		strcat(func_result,"[");
-   		sprintf(text, "%d",120);//effective time
+   		sprintf(text, "%d",20);//effective time
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,"]");
    		
@@ -629,7 +629,7 @@ void client_make_command(char *func_result, int sender_id, int receive_id, int e
    		sprintf(text, "%s.%d", date,sec);//timestamp
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,"||");
-   		sprintf(text, "%d",120);//effective time
+   		sprintf(text, "%d",20);//effective time
    		strncat(func_result,text ,strlen(text));
                 strcat(func_result,"||");
    		sprintf(text, "%s:%d:%d", servent[target_servent].ip, servent[target_servent].port,target_servent );//extra information
@@ -672,7 +672,7 @@ void client_make_command(char *func_result, int sender_id, int receive_id, int e
    		sprintf(text, "%s.%d", date,sec);//timestamp
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,";");
-   		sprintf(text, "%d",120);//effective time
+   		sprintf(text, "%d",20);//effective time
    		strncat(func_result,text ,strlen(text));
    		
    		//puts(func_result);
@@ -699,7 +699,7 @@ void client_make_command(char *func_result, int sender_id, int receive_id, int e
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,"]");
    		strcat(func_result,"[");
-   		sprintf(text, "%d",120);//effective time
+   		sprintf(text, "%d",20);//effective time
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,"]");
    		
@@ -709,7 +709,7 @@ void client_make_command(char *func_result, int sender_id, int receive_id, int e
    		sprintf(text, "%s.%d", date,sec);//timestamp
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,"||");
-   		sprintf(text, "%d",120);//effective time
+   		sprintf(text, "%d",20);//effective time
    		strncat(func_result,text ,strlen(text));
                 strcat(func_result,"||");
                 //extra information   		
@@ -1705,7 +1705,7 @@ void client_func(long c_id){
 		}
 		
 		if(client_select_pattern_signal[c_id] == 1){
-		//client_pattern[c_id] =  rand() % 3 +1 ;
+		client_pattern[c_id] =  rand() % 3 +1 ;
 		}
 		if(client_select_pattern_signal[c_id] == 0){
 		client_pattern[c_id] = 99;
@@ -2332,25 +2332,24 @@ void client_func(long c_id){
 		client_last_time_select_pattern[c_id]  = now_sec;
 		}
 		
-		client_command_buffer[c_id][client_command_buffer_pointer[c_id]-1]
-		client_command_buffer_pointer[c_id]
+		
 			
 			int delete_command_signal=0;
-		//printf("before:servent_command_buffer_pointer[s_id] %d  !\n", servent_command_buffer_pointer[s_id]);
+		//printf("before:client_command_buffer_pointer[c_id] %d  !\n", client_command_buffer_pointer[c_id]);
 			
 		for ( i = 0; i < client_command_buffer_pointer[c_id]; i++) {
 		
-		if(strlen(servent_command_buffer[s_id][i].content) != 0){
+		if(strlen(client_command_buffer[c_id][i].content) != 0){
 			
-			//puts(servent_command_buffer[s_id][i].content);
-			timestamp_split(servent_command_buffer[s_id][i].timestamp ,string_command_year,string_command_month,string_command_day,string_command_sec);
+			//puts(client_command_buffer[c_id][i].content);
+			timestamp_split(client_command_buffer[c_id][i].timestamp ,string_command_year,string_command_month,string_command_day,string_command_sec);
 			
 			command_year = atoi(string_command_year);	
 			command_month = atoi(string_command_month);	
 			command_day = atoi(string_command_day);	
 			command_sec = atoi(string_command_sec);	
-			//printf("effective_time %d  !\n", servent_command_buffer[s_id][i].effective_time);
-			deadline_sec = command_sec + servent_command_buffer[s_id][i].effective_time;
+			//printf("effective_time %d  !\n", client_command_buffer[c_id][i].effective_time);
+			deadline_sec = command_sec + client_command_buffer[c_id][i].effective_time;
 			deadline_day = command_day ;
 			deadline_month = command_month ;
 			deadline_year = command_year ;
@@ -2416,14 +2415,14 @@ void client_func(long c_id){
 			
 			
 			if(delete_command_signal == 1){
-			printf("delete_command_signal[%ld] %d  !\n", s_id,delete_command_signal);
-			Command temp = servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1];
-			servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1] = servent_command_buffer[s_id][i];
-		        servent_command_buffer[s_id][i] = temp;
+			printf("delete_command_signal[%ld] %d  !\n", c_id,delete_command_signal);
+			Command temp = client_command_buffer[c_id][client_command_buffer_pointer[c_id]-1];
+			client_command_buffer[c_id][client_command_buffer_pointer[c_id]-1] = client_command_buffer[c_id][i];
+		        client_command_buffer[c_id][i] = temp;
 		        
-		        memset(&servent_command_buffer[s_id][i],0,sizeof(Command));
+		        memset(&client_command_buffer[c_id][i],0,sizeof(Command));
 
-			servent_command_buffer_pointer[s_id]--;
+			client_command_buffer_pointer[c_id]--;
 			}
 			
 		}
@@ -6483,16 +6482,16 @@ int main() {
 				/*for (i = 0; i < (NUM_SERVENT_BOTS/2); i++) {
 				servent_pattern[i]=1;
 				}*/
-				servent_pattern[NUM_SERVENT_BOTS]=1;
-				//client_pattern[0]=1;
+				//servent_pattern[NUM_SERVENT_BOTS]=1;
+				client_pattern[0]=1;
 				//sleep(2);
 				//client_pattern[0]=master_command;
 				break;
 				
 			case 2:
 				
-				servent_pattern[NUM_SERVENT_BOTS]=2;
-				//client_pattern[0]=2;
+				//servent_pattern[NUM_SERVENT_BOTS]=2;
+				client_pattern[0]=2;
 				//sleep(2);
 				//client_pattern[0]=master_command;
 				
@@ -6500,8 +6499,8 @@ int main() {
 			case 3:
 				
 					
-				//client_pattern[0]=3;
-				servent_pattern[NUM_SERVENT_BOTS]=3;
+				client_pattern[0]=3;
+				//servent_pattern[NUM_SERVENT_BOTS]=3;
 				//sleep(2);
 				//client_pattern[0]=master_command;		
 				break;
