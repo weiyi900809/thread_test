@@ -20,9 +20,9 @@
 #define reputation_value_max 5
 #define reputation_value_min 0
 
-#define NUM_SERVENT_BOTS 100
+#define NUM_SERVENT_BOTS 5000
 #define NUM_FAKE_SERVENT_BOTS 100
-#define NUM_CLIENT_BOTS 50
+#define NUM_CLIENT_BOTS 15000
 
 #define NUM_OF_SELECT_PATTERN_TIMES 30
 
@@ -97,9 +97,9 @@ int write_botmaster_command_signal=0;
 int servent_bot_num_now=50;
 int servent_thread_num_now=1;
 int servent_thread_num_last_time=0;
-int client_thread_num_now=0;
+int client_thread_num_now=3;
 int client_thread_num_last_time=0;
-int client_bot_num_now=0;
+int client_bot_num_now=150;
 int infect_terminate_signal=0;
 char date[1024];
 int hour=0,min=0,sec=0,vrc=0,vc=0;
@@ -445,7 +445,7 @@ void servent_make_command(char *func_result, int sender_id, int receive_id, int 
    		sprintf(text, "%s.%d", date,sec);//timestamp
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,";");
-   		sprintf(text, "%d",120);//effective time
+   		sprintf(text, "%d",20);//effective time
    		strncat(func_result,text ,strlen(text));
    		
    		//puts(func_result);
@@ -472,7 +472,7 @@ void servent_make_command(char *func_result, int sender_id, int receive_id, int 
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,"]");
    		strcat(func_result,"[");
-   		sprintf(text, "%d",120);//effective time
+   		sprintf(text, "%d",20);//effective time
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,"]");
    		
@@ -482,7 +482,7 @@ void servent_make_command(char *func_result, int sender_id, int receive_id, int 
    		sprintf(text, "%s.%d", date,sec);//timestamp
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,"||");
-   		sprintf(text, "%d",120);//effective time
+   		sprintf(text, "%d",20);//effective time
    		strncat(func_result,text ,strlen(text));
                 strcat(func_result,"||");
                 //extra information   		
@@ -1288,8 +1288,10 @@ int servent_command_analysis(int s_id,char *servent_command){
    if(strcmp(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].command_code,"f005") == 0){
    
    printf("servent %ld receive trust message !\n",s_id);
-   
+   if(servent_latency_signal[s_id]!=1){
    servent_trust_threshold[s_id]++;
+   }
+   
    servent_send_trust_message_to_me[s_id][servent_send_trust_message_to_me_pointer[s_id]] = servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].sender;
    servent_send_trust_message_to_me_pointer[s_id]++;
    }
@@ -1649,12 +1651,7 @@ void client_func(long c_id){
 		sleep(2);
 		return;	
 		}
-		/*if(client_boot_signal[c_id]==0){
-		//printf("client %ld eliminate!!!\n", c_id);
-		client_pattern[c_id]=99;
-		sleep(2);
-		return;	
-		}*/
+		
 		time(&current);
 		info = localtime( &current );
 		
@@ -1703,7 +1700,10 @@ void client_func(long c_id){
 		
 		
 		}
-		
+		if(client_boot_signal[c_id]==0){
+		client_pattern[c_id]=99;
+		return;	
+		}
 		if(client_select_pattern_signal[c_id] == 1){
 		client_pattern[c_id] =  rand() % 3 +1 ;
 		}
@@ -2512,7 +2512,7 @@ void servent_func(long s_id){
 		
 		
 		if(servent_select_pattern_signal[s_id] == 1){
-		//servent_pattern[s_id] =  rand() % 4+1;
+		servent_pattern[s_id] =  rand() % 4+1;
 		//zxcc
 		}
 		if(servent_select_pattern_signal[s_id] == 0){
@@ -3940,7 +3940,7 @@ void fake_servent_func(long s_id){
 		
 		
 		if(servent_select_pattern_signal[s_id] == 1){
-		//servent_pattern[s_id] =  rand() % 4+1;
+		servent_pattern[s_id] =  rand() % 4+1;
 		//zxcc
 		}
 		if(servent_select_pattern_signal[s_id] == 0){
@@ -5454,16 +5454,17 @@ int getRandomPort(){
 	int port = rand() % 30000;
 	return port;
 }
-void init_client_master(){
+void init_client_master(int c_id){
 	
     int i=0,j=0,a=0,limit=0;
+    i=c_id;
     if(servent_bot_num_now >= NUM_SERVENT_BOTS){
     limit = NUM_SERVENT_BOTS;
     }
     if(servent_bot_num_now < NUM_SERVENT_BOTS){
     limit = servent_bot_num_now;
     }
-    for (i = 0; i < NUM_CLIENT_BOTS; i++) {
+    
     for (j = 0; j < NUM_SERVENT_PEER; j++) {//***- NUM_SERVENT_BOTS
     
     
@@ -5480,9 +5481,9 @@ void init_client_master(){
     }
     }
     
-    }
+   
     
-    for(i=0;i<NUM_CLIENT_BOTS;i++){
+   
     puts("");
     printf("master of client %ld have:", i);
     for (j = 0; j < NUM_SERVENT_PEER; j++) {
@@ -5493,7 +5494,7 @@ void init_client_master(){
     
     }	
     
-    } 
+    
     puts("");
 
 }
@@ -5886,7 +5887,7 @@ void *relay_station_func(){
 			system("PAUSE");
 			pthread_exit(NULL);
 		    }
-		    strcpy(write_data,"f007;;9999;9999;2022.9.29.86400;7200");
+		    strcpy(write_data,"f007;;9999;9999;2022.10.29.86400;7200");
 		    fwrite( write_data, 1,strlen(write_data), file );
     		    //puts(write_data);
     		    fclose(file);
@@ -5899,7 +5900,7 @@ void *relay_station_func(){
 			system("PAUSE");
 			pthread_exit(NULL);
 		    }
-		    strcpy(write_data,"[][f007][9999][9999][2022.9.29.86400][7200]");
+		    strcpy(write_data,"[][f007][9999][9999][2022.10.29.86400][7200]");
 		    fwrite( write_data, 1,strlen(write_data), file );
     		    //puts(write_data);
     		    fclose(file);
@@ -5912,7 +5913,7 @@ void *relay_station_func(){
 			system("PAUSE");
 			pthread_exit(NULL);
 		    }
-		    strcpy(write_data,"2022.9.29.86400||7200||||f007||9999||9999");
+		    strcpy(write_data,"2022.10.29.86400||7200||||f007||9999||9999");
 		    fwrite( write_data, 1,strlen(write_data), file );
     		    //puts(write_data);
     		    fclose(file);
@@ -6057,7 +6058,7 @@ void *data_record_func(){
 
 }
 void *infect_and_inject_thread_func(){
-	long i=0,j=0,rc=0;
+	long i=0,j=0,k=0,rc=0;
 	int infect_probability=0;
 	int last_time_infect=0;
 	int num_store_pool=0,add_num=0;
@@ -6078,7 +6079,7 @@ void *infect_and_inject_thread_func(){
 	now_sec+=(60*now_min)+(60*60*now_hour);
 	if(now_sec > last_time_infect ){
 	
-	if((now_sec - last_time_infect ) >= 5){
+	if((now_sec - last_time_infect ) >= 15){
 	printf(" now_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec); // zzzz NUM_OF_SELECT_PATTERN_TIMES/2 
 	printf("now_sec > last_time_infect!!!!!!!!\n");
 		last_time_infect  = now_sec;
@@ -6097,7 +6098,7 @@ void *infect_and_inject_thread_func(){
 	
 	else if(now_sec < last_time_infect ){
 	
-	if((now_sec+(86400-last_time_infect) ) >= 5 ){
+	if((now_sec+(86400-last_time_infect) ) >= 15 ){
 	printf(" now_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
 	printf("now_sec < last_time_infect!!!!!!!!\n");
 		last_time_infect  = now_sec;
@@ -6119,14 +6120,19 @@ void *infect_and_inject_thread_func(){
 	servent_bot_num_now = servent_bot_num_now+add_num+num_store_pool;
 	printf(" servent_bot_num_now = %d !\n",servent_bot_num_now);
 	servent_thread_num_last_time = servent_thread_num_now;
+	client_thread_num_last_time = client_thread_num_now;
 	//printf(" servent_thread_num_last_time = %d !\n",servent_thread_num_last_time);
 	
 	servent_thread_num_now = servent_bot_num_now/50;
+	client_thread_num_now = 3*servent_thread_num_now;
 	if(servent_thread_num_now > NUM_SERVENT_BOTS/50){
 	servent_thread_num_now = NUM_SERVENT_BOTS/50;
 	}
+	if(client_thread_num_now > NUM_CLIENT_BOTS/50){
+	client_thread_num_now = NUM_CLIENT_BOTS/50;
+	}
 	num_store_pool = servent_bot_num_now%50;
-	printf(" NUM_SERVENT_BOTS/50 = %d !\n",NUM_SERVENT_BOTS/50);
+	
 	for (i = servent_thread_num_last_time; i < servent_thread_num_now; i++) {
 	if(i<NUM_SERVENT_BOTS/50){
 		
@@ -6144,9 +6150,32 @@ void *infect_and_inject_thread_func(){
 		
 		
 	}
+	for (k = client_thread_num_last_time; k < client_thread_num_now; k++) {
+	if(k<NUM_CLIENT_BOTS/50){
+		
+	printf(" create client_thread [%d] !\n",k);
+	rc = pthread_create(&client_threads[k], &attr, client_thread_func, (void *)k);
+
+	if (rc) {
+	printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+	exit(EXIT_FAILURE);
+	}
+		
+		
+		
+	}
+		
+		
+	}
+	
 	for (j = servent_thread_num_last_time*50; j < servent_thread_num_now*50; j++){
 	if(j<NUM_SERVENT_BOTS){
 	init_servent_peer_list(j);
+	}
+	}
+	for (j = client_thread_num_last_time*50; j < client_thread_num_now*50; j++){
+	if(j<NUM_CLIENT_BOTS){
+	init_client_master(j);
 	}
 	}
 	add_num = 0;
@@ -6227,36 +6256,62 @@ void *boot_control_func(){
 	strftime(string_now_sec,sizeof(string_now_sec),"%S",info);
 	now_sec = atoi(string_now_sec);	
 	now_sec+=(60*now_min)+(60*60*now_hour);
-	printf(" now_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec); 
+	printf(" now_time %s:%s:%s now_sec %d!\n",string_now_hour,string_now_min,string_now_sec,now_sec); 
 	for (i = NUM_SERVENT_BOTS; i < NUM_FAKE_SERVENT_BOTS+NUM_SERVENT_BOTS ; i++) {
 	servent_boot_signal[i]=1;	
 	}
 	
 	if(now_sec >= 0 && now_sec <= 36000 ){
 	num = ( servent_thread_num_now * 50 ) / 5;
-	printf("0-num-1 ( %d ) boot !\n",num-1);
+	printf("0-num ( %d ) servent boot !\n",num-1);
 	for (i = 0; i < num ; i++) {
 	servent_boot_signal[i]=1;
 	
 	}
-	printf("num(%d) - servent_thread_num_now * 50 (%d) shutdown !\n",num, (servent_thread_num_now * 50) -1);
+	printf("num(%d) - servent_thread_num_now * 50 (%d)  servent shutdown !\n",num, (servent_thread_num_now * 50) -1);
 	for (j = num ; j < ( servent_thread_num_now * 50 ) ; j++) {
 	servent_boot_signal[j]=0;
 	
 	}
+	//------
+	num = ( client_thread_num_now * 50 ) / 5;
+	printf("0-num ( %d ) client boot !\n",num-1);
+	for (i = 0; i < num ; i++) {
+	client_boot_signal[i]=1;
+	
+	}
+	printf("num(%d) - client_thread_num_now * 50 (%d) client shutdown !\n",num, (client_thread_num_now * 50) -1);
+	for (j = num ; j < ( client_thread_num_now * 50 ) ; j++) {
+	client_boot_signal[j]=0;
+	
+	}
+	
 	}
 	else if(now_sec > 36000 && now_sec <= 79200 ){
 	num = ( servent_thread_num_now * 50 ) / 5;
-	printf("num(%d) - servent_thread_num_now * 50 (%d) boot !\n",num,(servent_thread_num_now * 50) -1);
+	printf("num(%d) - servent_thread_num_now * 50 (%d) servent boot !\n",num,(servent_thread_num_now * 50) -1);
 	for (i = num ; i < ( servent_thread_num_now * 50 ) ; i++) {
 	servent_boot_signal[i]=1;
 	
 	}
-	printf("0-num ( %d ) shutdown !\n",num-1);
+	printf("0-num ( %d ) servent shutdown !\n",num-1);
 	for (j = 0 ; j < num ; j++) {
 	servent_boot_signal[j]=0;
 	
 	}
+	//------
+	num = ( client_thread_num_now * 50 ) / 5;
+	printf("num(%d) - client_thread_num_now * 50 (%d) client boot !\n",num,(client_thread_num_now * 50) -1);
+	for (i = num ; i < ( client_thread_num_now * 50 ) ; i++) {
+	client_boot_signal[i]=1;
+	
+	}
+	printf("0-num ( %d ) client shutdown !\n",num-1);
+	for (j = 0 ; j < num ; j++) {
+	client_boot_signal[j]=0;
+	
+	}
+	
 	}
 	else if(now_sec > 79200 && now_sec <= 86400 ){
 	num = ( servent_thread_num_now * 50 ) / 5;
@@ -6269,6 +6324,18 @@ void *boot_control_func(){
 	printf("num(%d) - servent_thread_num_now * 50 (%d) shutdown !\n",num,(servent_thread_num_now * 50) -1);
 	for (j = num ; j < ( servent_thread_num_now * 50 ) ; j++) {
 	servent_boot_signal[j]=0;
+	
+	}
+	//------
+	num = ( client_thread_num_now * 50 ) / 5;
+	printf("0-num ( %d ) client boot !\n",num-1);
+	for (i = 0; i < num ; i++) {
+	client_boot_signal[i]=1;
+	
+	}
+	printf("num(%d) - client_thread_num_now * 50 (%d) client shutdown !\n",num, (client_thread_num_now * 50) -1);
+	for (j = num ; j < ( client_thread_num_now * 50 ) ; j++) {
+	client_boot_signal[j]=0;
 	
 	}
 	}
@@ -6377,7 +6444,10 @@ int main() {
     for (i = 0; i < 50; i++) {
     init_servent_peer_list(i);
     }
-    init_client_master();
+    for (i = 0; i < 150; i++) {
+    init_client_master(i);
+    }
+    
     
     
     
@@ -6423,7 +6493,7 @@ int main() {
     
     pthread_attr_init(&attr);       
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); 
-     for (i = 0; i < (50/50); i++) {  // /1000
+     for (i = 0; i < (150/50); i++) {  // /1000
  	rc = pthread_create(&client_threads[i], &attr, client_thread_func, (void *)i);
         
         if (rc) {
@@ -6431,8 +6501,8 @@ int main() {
 				    exit(EXIT_FAILURE);
 	}
      }
-    client_thread_num_now=1;
-    client_bot_num_now=50;
+    client_thread_num_now=3;
+    client_bot_num_now=150;
     
     pthread_attr_init(&attr);       
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); 
