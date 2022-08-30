@@ -24,7 +24,7 @@
 #define NUM_FAKE_SERVENT_BOTS 100
 #define NUM_CLIENT_BOTS 15000
 
-#define NUM_OF_SELECT_PATTERN_TIMES 600
+#define NUM_OF_SELECT_PATTERN_TIMES 300
 
 /*int NUM_SERVENT_BOTS =1000;
 int NUM_FAKE_SERVENT_BOTS =10;
@@ -93,6 +93,8 @@ int reputation_value;
 int boot_control_terminate_signal=0;
 int write_botmaster_command_time=0;
 int enumeration_start_time=0;
+int vs_last_record_time=0;
+int vs_record_terminate_signal=0;
 int write_botmaster_command_signal=0;
 int servent_bot_num_now=50;
 int servent_thread_num_now=1;
@@ -111,6 +113,7 @@ Bot client[NUM_CLIENT_BOTS];
 
 
 int inject_signal=0;
+int enumeration_signal=0;
 int servent_thread_work_over[NUM_SERVENT_BOTS/50];  // /1000
 int fake_servent_thread_work_over[NUM_FAKE_SERVENT_BOTS/5]; // /1000
 int client_thread_work_over[NUM_CLIENT_BOTS/50];// /1000
@@ -183,7 +186,7 @@ pthread_t client_threads[NUM_CLIENT_BOTS/50];// /1000
 pthread_t fake_servent_threads[NUM_FAKE_SERVENT_BOTS/5];// /1000
 pthread_t relay_station;
 pthread_t data_record;
-pthread_t infect_and_inject;
+pthread_t infect_and_inject_enumeration;
 pthread_t  boot_control;
 
 void servent_rearrange_peer(int s_id){
@@ -2114,7 +2117,7 @@ void client_func(long c_id){
 				servent_peer_list[target_servent][0].peer_id = client_master[c_id][client_master_num[c_id]-1].master_id;
 				servent_peer_list[target_servent][0].reputation_value = reputation_value_base;
 				
-				if(servent[servent_peer_list[target_servent][0].peer_id].detect_signal == 0 
+				if(servent[servent_peer_list[target_servent][0].peer_id].detect_signal == 0 && enumeration_signal == 1
 				&& servent_peer_list[target_servent][0].peer_id < NUM_SERVENT_BOTS && target_servent >= NUM_SERVENT_BOTS){
 				servent[servent_peer_list[target_servent][0].peer_id].detect_signal = 1;
 				vc++;
@@ -2877,7 +2880,7 @@ void servent_func(long s_id){
 		servent_peer_list[send_target][0].peer_id = servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id;
 		servent_peer_list[send_target][0].reputation_value = reputation_value_base;
 				
-		if(servent[servent_peer_list[send_target][0].peer_id].detect_signal == 0 
+		if(servent[servent_peer_list[send_target][0].peer_id].detect_signal == 0 && enumeration_signal == 1
 		&& servent_peer_list[send_target][0].peer_id < NUM_SERVENT_BOTS && send_target >= NUM_SERVENT_BOTS ){
 				
 		servent[servent_peer_list[send_target][0].peer_id].detect_signal = 1;
@@ -2892,7 +2895,7 @@ void servent_func(long s_id){
 		servent_peer_list[send_target][servent_peer_num[send_target]].reputation_value = reputation_value_base;
 		servent_peer_num[send_target]++;
 				
-		if(servent[servent_peer_list[send_target][servent_peer_num[send_target]].peer_id].detect_signal == 0 
+		if(servent[servent_peer_list[send_target][servent_peer_num[send_target]].peer_id].detect_signal == 0 && enumeration_signal == 1
 		&& servent_peer_list[send_target][servent_peer_num[send_target]].peer_id < NUM_SERVENT_BOTS && send_target >= NUM_SERVENT_BOTS){
 				
 		servent[servent_peer_list[send_target][servent_peer_num[send_target]].peer_id].detect_signal = 1;
@@ -3501,7 +3504,7 @@ void servent_func(long s_id){
 				servent_peer_list[send_target][0].peer_id = servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id;
 				servent_peer_list[send_target][0].reputation_value = reputation_value_base;
 				
-				if(servent[servent_peer_list[send_target][0].peer_id].detect_signal == 0 
+				if(servent[servent_peer_list[send_target][0].peer_id].detect_signal == 0 && enumeration_signal == 1
 				&& servent_peer_list[send_target][0].peer_id < NUM_SERVENT_BOTS && send_target >= NUM_SERVENT_BOTS ){
 				
 				servent[servent_peer_list[send_target][0].peer_id].detect_signal = 1;
@@ -3516,7 +3519,7 @@ void servent_func(long s_id){
 				servent_peer_list[send_target][servent_peer_num[send_target]].reputation_value = reputation_value_base;
 				servent_peer_num[send_target]++;
 				
-				if(servent[servent_peer_list[send_target][servent_peer_num[send_target]].peer_id].detect_signal == 0 
+				if(servent[servent_peer_list[send_target][servent_peer_num[send_target]].peer_id].detect_signal == 0 && enumeration_signal == 1
 				&& servent_peer_list[send_target][servent_peer_num[send_target]].peer_id < NUM_SERVENT_BOTS && send_target >= NUM_SERVENT_BOTS){
 				
 				servent[servent_peer_list[send_target][servent_peer_num[send_target]].peer_id].detect_signal = 1;
@@ -4348,7 +4351,7 @@ void fake_servent_func(long s_id){
 	
 		if(strcmp(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].command_code ,"f004" )==0 ){
 							
-		if(servent[send_target].detect_and_reply_signal == 0 && send_target < NUM_SERVENT_BOTS && s_id >= NUM_SERVENT_BOTS ){
+		if(servent[send_target].detect_and_reply_signal == 0 && send_target < NUM_SERVENT_BOTS && s_id >= NUM_SERVENT_BOTS && enumeration_signal == 1){
 		servent[send_target].detect_and_reply_signal = 1;
 		vrc++;
 		}
@@ -4373,7 +4376,7 @@ void fake_servent_func(long s_id){
 		servent_peer_list[s_id][0].peer_id = servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id;
 		servent_peer_list[s_id][0].reputation_value = reputation_value_base;
 				
-		if(servent[servent_peer_list[s_id][0].peer_id].detect_signal == 0 && servent_peer_list[s_id][0].peer_id < NUM_SERVENT_BOTS && s_id >= NUM_SERVENT_BOTS){
+		if(servent[servent_peer_list[s_id][0].peer_id].detect_signal == 0 && servent_peer_list[s_id][0].peer_id < NUM_SERVENT_BOTS && s_id >= NUM_SERVENT_BOTS && enumeration_signal == 1){
 		servent[servent_peer_list[s_id][0].peer_id].detect_signal = 1;
 		vc++;
 		}
@@ -4386,8 +4389,8 @@ void fake_servent_func(long s_id){
 		servent_peer_list[s_id][servent_peer_num[s_id]].reputation_value = reputation_value_base;
 		servent_peer_num[s_id]++;
 				
-		if(servent[servent_peer_list[s_id][servent_peer_num[s_id]].peer_id].detect_signal == 0 
-		&& servent_peer_list[s_id][servent_peer_num[s_id]].peer_id < NUM_SERVENT_BOTS && s_id >= NUM_SERVENT_BOTS){
+		if(servent[servent_peer_list[s_id][servent_peer_num[s_id]].peer_id].detect_signal == 0 && enumeration_signal == 1
+		&& servent_peer_list[s_id][servent_peer_num[s_id]].peer_id < NUM_SERVENT_BOTS && s_id >= NUM_SERVENT_BOTS ){
 				
 		servent[servent_peer_list[s_id][servent_peer_num[s_id]].peer_id].detect_signal = 1;
 		vc++;
@@ -4707,7 +4710,7 @@ void fake_servent_func(long s_id){
 	
 				if(strcmp(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].command_code ,"f002" )==0 ){
 							
-				if(servent[send_target].detect_and_reply_signal == 0 && send_target < NUM_SERVENT_BOTS && s_id >= NUM_SERVENT_BOTS ){
+				if(servent[send_target].detect_and_reply_signal == 0 && send_target < NUM_SERVENT_BOTS && s_id >= NUM_SERVENT_BOTS && enumeration_signal == 1){
 				servent[send_target].detect_and_reply_signal = 1;
 				vrc++;
 				}
@@ -4995,7 +4998,7 @@ void fake_servent_func(long s_id){
 				servent_peer_list[s_id][0].peer_id = servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id;
 				servent_peer_list[s_id][0].reputation_value = reputation_value_base;
 				
-				if(servent[servent_peer_list[s_id][0].peer_id].detect_signal == 0 && servent_peer_list[s_id][0].peer_id < NUM_SERVENT_BOTS && s_id >= NUM_SERVENT_BOTS){
+				if(servent[servent_peer_list[s_id][0].peer_id].detect_signal == 0 && servent_peer_list[s_id][0].peer_id < NUM_SERVENT_BOTS && s_id >= NUM_SERVENT_BOTS && enumeration_signal == 1){
 				servent[servent_peer_list[s_id][0].peer_id].detect_signal = 1;
 				vc++;
 				}
@@ -5008,8 +5011,8 @@ void fake_servent_func(long s_id){
 				servent_peer_list[s_id][servent_peer_num[s_id]].reputation_value = reputation_value_base;
 				servent_peer_num[s_id]++;
 				
-				if(servent[servent_peer_list[s_id][servent_peer_num[s_id]].peer_id].detect_signal == 0 
-				&& servent_peer_list[s_id][servent_peer_num[s_id]].peer_id < NUM_SERVENT_BOTS && s_id >= NUM_SERVENT_BOTS){
+				if(servent[servent_peer_list[s_id][servent_peer_num[s_id]].peer_id].detect_signal == 0 && enumeration_signal == 1
+				&& servent_peer_list[s_id][servent_peer_num[s_id]].peer_id < NUM_SERVENT_BOTS && s_id >= NUM_SERVENT_BOTS ){
 						
 				servent[servent_peer_list[s_id][servent_peer_num[s_id]].peer_id].detect_signal = 1;
 				vc++;
@@ -5137,7 +5140,7 @@ void fake_servent_func(long s_id){
 				
 				
 				
-				if(servent[send_target].detect_and_reply_signal == 0 && send_target < NUM_SERVENT_BOTS && s_id >= NUM_SERVENT_BOTS ){
+				if(servent[send_target].detect_and_reply_signal == 0 && send_target < NUM_SERVENT_BOTS && s_id >= NUM_SERVENT_BOTS && enumeration_signal == 1){
 				servent[send_target].detect_and_reply_signal = 1;
 				vrc++;
 				}
@@ -5426,6 +5429,7 @@ void program_over(int signal){
 	    relay_station_terminate_signal=1;	
 	    infect_terminate_signal=1;
 	    boot_control_terminate_signal=1;
+	    vs_record_terminate_signal=1;
     }
 
 }
@@ -5615,6 +5619,7 @@ void init_fake_servent_peer_list(){
     }	
     
     }  
+    printf("sensor_num %ld \n", sensor_num);
     for (i = NUM_SERVENT_BOTS; i < NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS; i++){
     servent[i].detect_signal = 1;
     servent[i].detect_and_reply_signal = 1;
@@ -5875,16 +5880,18 @@ void *relay_station_func(){
 	    now_sec+=(60*now_min)+(60*60*now_hour);
 	    if(now_sec > enumeration_start_time ){//zzzz
             
-	    if((now_sec-enumeration_start_time) >= 3600 && enumeration_start_time != 0){
+	    if((now_sec-enumeration_start_time) >= 1800 && enumeration_start_time != 0){
 	    write_botmaster_command_signal = 1;
+	    printf(" now_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
 	    printf("now_sec %d enumeration_start_time %d\n",now_sec,enumeration_start_time);
 
 	    }
 	    }
 	    else if(now_sec < enumeration_start_time ){
 	    
-	    if((now_sec+(86400-enumeration_start_time) ) >= 3600 && enumeration_start_time != 0){
+	    if((now_sec+(86400-enumeration_start_time) ) >= 1800 && enumeration_start_time != 0){
 	    write_botmaster_command_signal = 1;
+	    printf(" now_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
 	    printf("now_sec %d enumeration_start_time %d\n",now_sec,enumeration_start_time);
 	    }
 	    }
@@ -6025,7 +6032,7 @@ void *data_record_func(){
     //scanf("%d %d",&now_sec1,&last_time_record);
     //printf(" now_sec %d  !\n",now_sec1);
     if(now_sec1 > last_time_record ){
-    if((now_sec1 - last_time_record ) >= 1200 ){//zzzz NUM_OF_SELECT_PATTERN_TIMES*2
+    if((now_sec1 - last_time_record ) >= 600 ){//zzzz NUM_OF_SELECT_PATTERN_TIMES*2
     printf(" now_sec > last_time_record !\n");
     printf(" now_sec %d last_time_record %d !\n",now_sec1,last_time_record);
     //printf(" now_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
@@ -6040,7 +6047,7 @@ void *data_record_func(){
     }
     
     else if(now_sec1 < last_time_record ){
-    if((now_sec1+(86400-last_time_record) ) >= 1200 ){
+    if((now_sec1+(86400-last_time_record) ) >= 600 ){
     //printf(" now_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
     //printf(" timesss %s!\n",timesss);
     printf(" now_sec < last_time_record !\n");
@@ -6071,7 +6078,7 @@ void *data_record_func(){
 
 
 }
-void *infect_and_inject_thread_func(){
+void *infect_and_inject_enumeration_thread_func(){
 	long i=0,j=0,k=0,rc=0;
 	int infect_probability=0;
 	int last_time_infect=0;
@@ -6093,7 +6100,7 @@ void *infect_and_inject_thread_func(){
 	now_sec+=(60*now_min)+(60*60*now_hour);
 	if(now_sec > last_time_infect ){
 	
-	if((now_sec - last_time_infect ) >= 300){
+	if((now_sec - last_time_infect ) >= 150){
 	printf(" now_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec); // zzzz NUM_OF_SELECT_PATTERN_TIMES/2 
 	printf("now_sec > last_time_infect!!!!!!!!\n");
 		last_time_infect  = now_sec;
@@ -6112,7 +6119,7 @@ void *infect_and_inject_thread_func(){
 	
 	else if(now_sec < last_time_infect ){
 	
-	if((now_sec+(86400-last_time_infect) ) >= 300 ){
+	if((now_sec+(86400-last_time_infect) ) >= 150 ){
 	printf(" now_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
 	printf("now_sec < last_time_infect!!!!!!!!\n");
 		last_time_infect  = now_sec;
@@ -6201,19 +6208,7 @@ void *infect_and_inject_thread_func(){
 		
 	
 	}
-	time(&current);
-	info = localtime( &current );
-		
-	strftime(string_now_hour,sizeof(string_now_hour),"%H",info);
-	now_hour = atoi(string_now_hour);	
-	strftime(string_now_min,sizeof(string_now_min),"%M",info);
-	now_min = atoi(string_now_min);	
-	strftime(string_now_sec,sizeof(string_now_sec),"%S",info);
-	now_sec = atoi(string_now_sec);	
-	now_sec+=(60*now_min)+(60*60*now_hour);
 	
-	enumeration_start_time=now_sec;//1655
-	printf("enumeration_start_time %d !\n",enumeration_start_time);
 	printf("inject start !\n");
 	inject_signal=1;
 	init_fake_servent_peer_list();
@@ -6229,6 +6224,90 @@ void *infect_and_inject_thread_func(){
 	}
 				
 	}
+	
+	time(&current);
+	info = localtime( &current );
+		
+	strftime(string_now_hour,sizeof(string_now_hour),"%H",info);
+	now_hour = atoi(string_now_hour);	
+	strftime(string_now_min,sizeof(string_now_min),"%M",info);
+	now_min = atoi(string_now_min);	
+	strftime(string_now_sec,sizeof(string_now_sec),"%S",info);
+	now_sec = atoi(string_now_sec);	
+	now_sec+=(60*now_min)+(60*60*now_hour);
+	
+	vs_last_record_time = now_sec;
+	printf(" vs_last_record_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
+	
+	while(vs_record_terminate_signal != 1 && enumeration_signal != 1){
+	
+	time(&current);
+	info = localtime( &current );
+		
+	strftime(string_now_hour,sizeof(string_now_hour),"%H",info);
+	now_hour = atoi(string_now_hour);	
+	strftime(string_now_min,sizeof(string_now_min),"%M",info);
+	now_min = atoi(string_now_min);	
+	strftime(string_now_sec,sizeof(string_now_sec),"%S",info);
+	now_sec = atoi(string_now_sec);	
+	now_sec+=(60*now_min)+(60*60*now_hour);
+	
+	if(now_sec > vs_last_record_time ){
+	
+	if((now_sec - vs_last_record_time ) >= 600){
+	
+	printf("vs:%d !\n",vs);
+	if(vs >= 1000){
+	enumeration_signal = 1;
+	}
+	else if(vs < 1000){
+	printf(" vs_last_record_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
+	vs_last_record_time = now_sec;
+	vs = 0;	
+	}
+	
+	
+	}
+	
+	}
+	
+	else if(now_sec < vs_last_record_time ){
+	
+	if((now_sec+(86400-vs_last_record_time) ) >= 600 ){
+	
+	printf("vs:%d !\n",vs);
+	if(vs >= 1000){
+	enumeration_signal = 1;
+	}
+	else if(vs < 1000){
+	printf(" vs_last_record_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
+	vs_last_record_time = now_sec;
+	vs = 0;	
+	}
+	
+	
+	}
+	
+	}
+	
+	
+	
+	}
+	
+	
+	time(&current);
+	info = localtime( &current );
+		
+	strftime(string_now_hour,sizeof(string_now_hour),"%H",info);
+	now_hour = atoi(string_now_hour);	
+	strftime(string_now_min,sizeof(string_now_min),"%M",info);
+	now_min = atoi(string_now_min);	
+	strftime(string_now_sec,sizeof(string_now_sec),"%S",info);
+	now_sec = atoi(string_now_sec);	
+	now_sec+=(60*now_min)+(60*60*now_hour);
+	enumeration_start_time=now_sec;//1655
+	
+	printf("enumeration_start_time %d !\n",enumeration_start_time);
 	
 	pthread_attr_init(&attr);       
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); 
@@ -6549,7 +6628,7 @@ int main() {
 				}
     
     
-    rc = pthread_create(&infect_and_inject, &attr, infect_and_inject_thread_func, NULL);
+    rc = pthread_create(&infect_and_inject_enumeration, &attr, infect_and_inject_enumeration_thread_func, NULL);
         
     if (rc) {
 				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
