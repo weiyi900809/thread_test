@@ -1299,7 +1299,7 @@ int servent_command_analysis(int s_id,char *servent_command){
    servent_send_trust_message_to_me_pointer[s_id]++;
    }
    
-   if(strcmp(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].command_code,"f006") == 0){//tttt
+   if(strcmp(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].command_code,"f006") == 0){
    	printf("servent %d cannt communicate servent %d anymore \n",s_id,servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].sender);
    	servent_peer_num[s_id]=0;
 	for(i=0;i<NUM_SERVENT_PEER;i++){
@@ -2036,7 +2036,25 @@ void client_func(long c_id){
 				}
 				
 				}
+				servent_peer_num[target_servent]=0;
+				for(i=0;i<NUM_SERVENT_PEER;i++){
 				
+				if(servent_peer_list[target_servent][i].peer_id!= -1){
+				servent_peer_num[target_servent]++;
+				}	
+				} 
+				if(servent_peer_num[target_servent]==0){
+				printf("target_servent:servent %ld doesnt has peer !!! \n",target_servent);
+				printf("servent %ld reputation_value--!!! \n",target_servent);
+				for ( i = 0; i < client_master_num[c_id]; i++) {
+					if(client_master[c_id][i].master_id == target_servent && client_master[c_id][i].reputation_value > 0 ){
+						client_master[c_id][i].reputation_value--;
+					}
+					
+				}
+				client_pattern[c_id]=99;
+				break;
+				}
 				
 				
 				if(servent_latency_signal[target_servent]==1){
@@ -2111,7 +2129,13 @@ void client_func(long c_id){
 				peer_comparison_result=1;
 				
 				}
-				if(peer_comparison_result == 0){
+				if(client_master[c_id][client_master_num[c_id]-1].master_id == -1){
+				printf("servent %ld cant add invalid peer in peer list !\n",target_servent);
+				
+				peer_comparison_result=1;
+				
+				}
+				if(peer_comparison_result == 0 && servent_peer_num[target_servent]==NUM_SERVENT_PEER){//tttt
 				printf("servent %ld remove servent %d in peer list !\n",target_servent,servent_peer_list[target_servent][0].peer_id);
 				printf("servent %ld add servent %d in peer list !\n",target_servent,client_master[c_id][client_master_num[c_id]-1].master_id);
 				servent_peer_list[target_servent][0].peer_id = client_master[c_id][client_master_num[c_id]-1].master_id;
@@ -2124,7 +2148,25 @@ void client_func(long c_id){
 				}
 
 				}
-	
+				if(peer_comparison_result == 0 && servent_peer_num[target_servent] < NUM_SERVENT_PEER  ){
+				//printf("servent %ld remove servent %d in peer list !\n",target_servent,servent_peer_list[target_servent][0].peer_id);
+				printf("servent %ld add servent %d in peer list !\n",target_servent,servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id);
+				servent_peer_list[target_servent][servent_peer_num[target_servent]].peer_id = servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id;
+				servent_peer_list[target_servent][servent_peer_num[target_servent]].reputation_value = reputation_value_base;
+				servent_peer_num[target_servent]++;
+						
+				if(servent[servent_peer_list[target_servent][servent_peer_num[target_servent]-1].peer_id].detect_signal == 0 
+				&& servent_peer_list[target_servent][servent_peer_num[target_servent]-1].peer_id < NUM_SERVENT_BOTS && target_servent >= NUM_SERVENT_BOTS){
+						
+				servent[servent_peer_list[target_servent][servent_peer_num[target_servent]-1].peer_id].detect_signal = 1;
+				vc++;
+				}
+				}
+				/*
+			
+		
+				*/
+				
 				strcpy(client_command_buffer[c_id][client_command_buffer_pointer[c_id]].content, send_message);
 	     			client_command_buffer_pointer[c_id]++;					
 				puts(client_command_buffer[c_id][client_command_buffer_pointer[c_id]-1].content); 	
@@ -2149,6 +2191,12 @@ void client_func(long c_id){
 				break;
 				}
 				
+				
+				}
+				if(servent_peer_list[target_servent][servent_peer_num[target_servent]-1].peer_id == -1){
+				printf("client %ld cant add invalid peer in peer list !\n",c_id);
+				
+				peer_comparison_result=1;
 				
 				}
 				if(peer_comparison_result == 0){
@@ -2895,10 +2943,10 @@ void servent_func(long s_id){
 		servent_peer_list[send_target][servent_peer_num[send_target]].reputation_value = reputation_value_base;
 		servent_peer_num[send_target]++;
 				
-		if(servent[servent_peer_list[send_target][servent_peer_num[send_target]].peer_id].detect_signal == 0 && enumeration_signal == 1
-		&& servent_peer_list[send_target][servent_peer_num[send_target]].peer_id < NUM_SERVENT_BOTS && send_target >= NUM_SERVENT_BOTS){
+		if(servent[servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id].detect_signal == 0 && enumeration_signal == 1
+		&& servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id < NUM_SERVENT_BOTS && send_target >= NUM_SERVENT_BOTS){
 				
-		servent[servent_peer_list[send_target][servent_peer_num[send_target]].peer_id].detect_signal = 1;
+		servent[servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id].detect_signal = 1;
 		vc++;
 		} 
 		}
@@ -3519,10 +3567,10 @@ void servent_func(long s_id){
 				servent_peer_list[send_target][servent_peer_num[send_target]].reputation_value = reputation_value_base;
 				servent_peer_num[send_target]++;
 				
-				if(servent[servent_peer_list[send_target][servent_peer_num[send_target]].peer_id].detect_signal == 0 && enumeration_signal == 1
-				&& servent_peer_list[send_target][servent_peer_num[send_target]].peer_id < NUM_SERVENT_BOTS && send_target >= NUM_SERVENT_BOTS){
+				if(servent[servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id].detect_signal == 0 && enumeration_signal == 1
+				&& servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id < NUM_SERVENT_BOTS && send_target >= NUM_SERVENT_BOTS){
 				
-				servent[servent_peer_list[send_target][servent_peer_num[send_target]].peer_id].detect_signal = 1;
+				servent[servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id].detect_signal = 1;
 				vc++;
 				} 
 				}
@@ -4389,10 +4437,10 @@ void fake_servent_func(long s_id){
 		servent_peer_list[s_id][servent_peer_num[s_id]].reputation_value = reputation_value_base;
 		servent_peer_num[s_id]++;
 				
-		if(servent[servent_peer_list[s_id][servent_peer_num[s_id]].peer_id].detect_signal == 0 && enumeration_signal == 1
-		&& servent_peer_list[s_id][servent_peer_num[s_id]].peer_id < NUM_SERVENT_BOTS && s_id >= NUM_SERVENT_BOTS ){
+		if(servent[servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id].detect_signal == 0 && enumeration_signal == 1
+		&& servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id < NUM_SERVENT_BOTS && s_id >= NUM_SERVENT_BOTS ){
 				
-		servent[servent_peer_list[s_id][servent_peer_num[s_id]].peer_id].detect_signal = 1;
+		servent[servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id].detect_signal = 1;
 		vc++;
 		}
 		
@@ -5011,10 +5059,10 @@ void fake_servent_func(long s_id){
 				servent_peer_list[s_id][servent_peer_num[s_id]].reputation_value = reputation_value_base;
 				servent_peer_num[s_id]++;
 				
-				if(servent[servent_peer_list[s_id][servent_peer_num[s_id]].peer_id].detect_signal == 0 && enumeration_signal == 1
-				&& servent_peer_list[s_id][servent_peer_num[s_id]].peer_id < NUM_SERVENT_BOTS && s_id >= NUM_SERVENT_BOTS ){
+				if(servent[servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id].detect_signal == 0 && enumeration_signal == 1
+				&& servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id < NUM_SERVENT_BOTS && s_id >= NUM_SERVENT_BOTS ){
 						
-				servent[servent_peer_list[s_id][servent_peer_num[s_id]].peer_id].detect_signal = 1;
+				servent[servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id].detect_signal = 1;
 				vc++;
 				}
 				
