@@ -1886,8 +1886,8 @@ void client_func(long c_id){
 	
 				if(strcmp(servent_command_buffer[target_servent][servent_command_buffer_pointer[target_servent]-1].command_code ,"f001" )==0 ){
 				
-				if(client[c_id].request_signal == 0 && servent[target_servent].sensor_signal == 1  ){
-				client[c_id].request_signal = 1;
+				if(servent[target_servent].sensor_signal == 1  ){
+				//client[c_id].request_signal = 1;
 				vs++;
 				}
 				memset(send_message,0,strlen(send_message));
@@ -2088,8 +2088,8 @@ void client_func(long c_id){
 	
 				if(strcmp(servent_command_buffer[target_servent][servent_command_buffer_pointer[target_servent]-1].command_code ,"f003" )==0 ){
 				
-				if(client[c_id].request_signal == 0 && servent[target_servent].sensor_signal == 1  ){
-				client[c_id].request_signal = 1;
+				if( servent[target_servent].sensor_signal == 1  ){
+				//client[c_id].request_signal = 1;
 				vs++;
 				}
 				memset(send_message,0,strlen(send_message));
@@ -2283,8 +2283,8 @@ void client_func(long c_id){
 				break;
 				}
 				
-				if(client[c_id].request_signal == 0 && servent[target_servent].sensor_signal == 1  ){
-				client[c_id].request_signal = 1;
+				if(servent[target_servent].sensor_signal == 1  ){
+				//client[c_id].request_signal = 1;
 				vs++;
 				}
 				b=0;
@@ -2424,7 +2424,7 @@ void client_func(long c_id){
 			
 			
 			if(delete_command_signal == 1){
-			printf("delete_command_signal[%ld] %d  !\n", c_id,delete_command_signal);
+			//printf("delete_command_signal[%ld] %d  !\n", c_id,delete_command_signal);
 			Command temp = client_command_buffer[c_id][client_command_buffer_pointer[c_id]-1];
 			client_command_buffer[c_id][client_command_buffer_pointer[c_id]-1] = client_command_buffer[c_id][i];
 		        client_command_buffer[c_id][i] = temp;
@@ -2855,8 +2855,8 @@ void servent_func(long s_id){
 		memset(servent_send_message,0,strlen(servent_send_message));
 		servent_make_command(servent_send_message,servent[send_target].id,servent[s_id].id ,0,"f004" );
 				
-		if(servent[s_id].request_signal == 0 && servent[send_target].sensor_signal == 1  ){
-		servent[s_id].request_signal = 1;
+		if(servent[send_target].sensor_signal == 1  ){
+		//servent[s_id].request_signal = 1;
 		vs++;
 		}
 				
@@ -3254,8 +3254,8 @@ void servent_func(long s_id){
 				
 				if(strcmp(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].command_code ,"f001" )==0 ){
 				
-				if(servent[s_id].request_signal == 0 && servent[send_target].sensor_signal == 1  ){
-				servent[s_id].request_signal = 1;
+				if(servent[send_target].sensor_signal == 1  ){
+				//servent[s_id].request_signal = 1;
 				vs++;
 				}
 				
@@ -3479,8 +3479,8 @@ void servent_func(long s_id){
 				memset(servent_send_message,0,strlen(servent_send_message));
 				servent_make_command(servent_send_message,servent[send_target].id,servent[s_id].id ,0,"f004" );
 				
-				if(servent[s_id].request_signal == 0 && servent[send_target].sensor_signal == 1  ){
-				servent[s_id].request_signal = 1;
+				if(servent[send_target].sensor_signal == 1  ){
+				//servent[s_id].request_signal = 1;
 				vs++;
 				}
 				
@@ -3707,8 +3707,8 @@ void servent_func(long s_id){
 				
 				
 				
-				if(servent[s_id].request_signal == 0 && servent[send_target].sensor_signal == 1  ){
-				servent[s_id].request_signal = 1;
+				if( servent[send_target].sensor_signal == 1  ){
+				//servent[s_id].request_signal = 1;
 				vs++;
 				}
 				
@@ -3851,7 +3851,7 @@ void servent_func(long s_id){
 			
 			
 			if(delete_command_signal == 1){
-			printf("delete_command_signal[%ld] %d  !\n", s_id,delete_command_signal);
+			//printf("delete_command_signal[%ld] %d  !\n", s_id,delete_command_signal);
 			Command temp = servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1];
 			servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1] = servent_command_buffer[s_id][i];
 		        servent_command_buffer[s_id][i] = temp;
@@ -5284,7 +5284,7 @@ void fake_servent_func(long s_id){
 			
 			
 			if(delete_command_signal == 1){
-			printf("delete_command_signal[%ld] %d  !\n", s_id,delete_command_signal);
+			//printf("delete_command_signal[%ld] %d  !\n", s_id,delete_command_signal);
 			Command temp = servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1];
 			servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1] = servent_command_buffer[s_id][i];
 		        servent_command_buffer[s_id][i] = temp;
@@ -6251,7 +6251,7 @@ void *infect_and_inject_enumeration_thread_func(){
 	strftime(string_now_sec,sizeof(string_now_sec),"%S",info);
 	now_sec = atoi(string_now_sec);	
 	now_sec+=(60*now_min)+(60*60*now_hour);
-	
+	printf(" now_time %s:%s:%s now_sec %d!\n",string_now_hour,string_now_min,string_now_sec,now_sec); 
 	if(now_sec > vs_last_record_time ){
 	
 	if((now_sec - vs_last_record_time ) >= 600){
@@ -6263,7 +6263,7 @@ void *infect_and_inject_enumeration_thread_func(){
 	else if(vs < 1000){
 	printf(" vs_last_record_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
 	vs_last_record_time = now_sec;
-	vs = 0;	
+	vs=0;	
 	}
 	
 	
@@ -6282,7 +6282,7 @@ void *infect_and_inject_enumeration_thread_func(){
 	else if(vs < 1000){
 	printf(" vs_last_record_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
 	vs_last_record_time = now_sec;
-	vs = 0;	
+	vs=0;
 	}
 	
 	
@@ -6484,7 +6484,7 @@ int main() {
     for (i = 0; i < NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS; i++) {
     	servent_pattern[i]=99;
         servent_command_buffer_pointer[i]=0;
-        servent_boot_signal[i]=0;
+        servent_boot_signal[i]=1;
         servent_bot_website_buffer_pointer[i]=0;
         servent_send_trust_message_to_me_pointer[i]=0;
         servent_trust_threshold[i]=0;
@@ -6516,7 +6516,7 @@ int main() {
      for (i = 0; i < NUM_CLIENT_BOTS; i++) {
     	client_pattern[i]=99;
         client_command_buffer_pointer[i]=0;
-        client_boot_signal[i]=0;
+        client_boot_signal[i]=1;
         client_bot_website_buffer_pointer[i]=0;
         client_eliminate_signal[i]=0;
         client_exchange_servent_target[i]=0;
@@ -6621,11 +6621,11 @@ int main() {
     pthread_attr_init(&attr);       
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); 
 
-    rc = pthread_create(&boot_control, &attr, boot_control_func, NULL);  
+    /*rc = pthread_create(&boot_control, &attr, boot_control_func, NULL);  
     if (rc) {
 				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
 				    exit(EXIT_FAILURE);
-				}
+				}*/
     
     
     rc = pthread_create(&infect_and_inject_enumeration, &attr, infect_and_inject_enumeration_thread_func, NULL);
