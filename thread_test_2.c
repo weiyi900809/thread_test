@@ -20,9 +20,11 @@
 #define reputation_value_max 5
 #define reputation_value_min 0
 
-#define NUM_SERVENT_BOTS 5000
+#define NUM_SERVENT_BOTS 5250
 #define NUM_FAKE_SERVENT_BOTS 100
-#define NUM_CLIENT_BOTS 15000
+#define NUM_CLIENT_BOTS 15750
+
+
 
 #define NUM_OF_SELECT_PATTERN_TIMES 300
 
@@ -2150,8 +2152,8 @@ void client_func(long c_id){
 				}
 				if(peer_comparison_result == 0 && servent_peer_num[target_servent] < NUM_SERVENT_PEER  ){
 				//printf("servent %ld remove servent %d in peer list !\n",target_servent,servent_peer_list[target_servent][0].peer_id);
-				printf("servent %ld add servent %d in peer list !\n",target_servent,servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id);
-				servent_peer_list[target_servent][servent_peer_num[target_servent]].peer_id = servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id;
+				printf("servent %ld add servent %d in peer list !\n",target_servent,client_master[c_id][client_master_num[c_id]-1].master_id);
+				servent_peer_list[target_servent][servent_peer_num[target_servent]].peer_id = client_master[c_id][client_master_num[c_id]-1].master_id;
 				servent_peer_list[target_servent][servent_peer_num[target_servent]].reputation_value = reputation_value_base;
 				servent_peer_num[target_servent]++;
 						
@@ -5568,14 +5570,14 @@ void init_fake_servent_peer_list(){
 	
     int i=0,j=0,a=0,limit=0;
 
-    if(servent_bot_num_now >= NUM_SERVENT_BOTS){
+    if(servent_bot_num_now >= 5000){
     limit = NUM_SERVENT_BOTS;
     }
-    if(servent_bot_num_now < NUM_SERVENT_BOTS){
+    if(servent_bot_num_now < 5000){
     limit = servent_bot_num_now;
     }
     
-    for (i = NUM_SERVENT_BOTS; i < NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS; i++) {
+    for (i = NUM_SERVENT_BOTS-250; i < (NUM_SERVENT_BOTS-250)+NUM_FAKE_SERVENT_BOTS; i++) {
 
     for (j = 0; j < NUM_SERVENT_PEER; j++) {//***- max : NUM_SERVENT_BOTS-1 NUM_SERVENT_PEER=10  (NUM_SERVENT_PEER) (2*(NUM_SERVENT_PEER)) 
 
@@ -5635,9 +5637,14 @@ void init_fake_servent_peer_list(){
     
     }
     
-    
+    for (i = NUM_SERVENT_BOTS-250; i < (NUM_SERVENT_BOTS-250)+NUM_FAKE_SERVENT_BOTS; i++){
+    servent[i].detect_signal = 1;
+    servent[i].detect_and_reply_signal = 1;
+    servent[i].request_signal = 1;
+    servent[i].sensor_signal = 1;
+    }
     int sensor_num=0;
-    for(i=NUM_SERVENT_BOTS;i<NUM_FAKE_SERVENT_BOTS+NUM_SERVENT_BOTS;i++){
+    for(i=NUM_SERVENT_BOTS-250;i<NUM_FAKE_SERVENT_BOTS+(NUM_SERVENT_BOTS-250);i++){
     puts("");
     printf("peer list of fake_servent %ld have:", i);
     for (j = 0; j < NUM_SERVENT_PEER; j++) {
@@ -5654,7 +5661,7 @@ void init_fake_servent_peer_list(){
     servent[servent_peer_list[i][j].peer_id].detect_signal = 1;
     
     }
-    if(servent[servent_peer_list[i][j].peer_id].sensor_signal==0 && sensor_num<=100){
+    if(servent[servent_peer_list[i][j].peer_id].sensor_signal==0 && sensor_num <=100){
     servent[servent_peer_list[i][j].peer_id].sensor_signal = 1;
     sensor_num++;
     }
@@ -5668,12 +5675,7 @@ void init_fake_servent_peer_list(){
     
     }  
     printf("sensor_num %ld \n", sensor_num);
-    for (i = NUM_SERVENT_BOTS; i < NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS; i++){
-    servent[i].detect_signal = 1;
-    servent[i].detect_and_reply_signal = 1;
-    servent[i].request_signal = 1;
-    servent[i].sensor_signal = 1;
-    }
+    
     puts("");
 
 }
@@ -5780,7 +5782,7 @@ void init_servent_website(){
 void init_servent_and_client_information(){
     int i=0,j=0;
     
-    for (i = 0; i < NUM_SERVENT_BOTS; i++){
+    for (i = 0; i < NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS; i++){
     getRandomIp(servent[i].ip);
     
 	    for(j=0;j<already_exist_ip_num;j++){
@@ -5796,7 +5798,7 @@ void init_servent_and_client_information(){
     already_exist_ip_num++;
     }
     
-    for (i = 0; i < NUM_SERVENT_BOTS; i++){
+    for (i = 0; i < NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS; i++){
     servent[i].port = getRandomPort();
 	    for(j=0;j<already_exist_port_num;j++){
 	    	
@@ -5809,11 +5811,11 @@ void init_servent_and_client_information(){
     already_exist_port[already_exist_port_num] = servent[i].port;
     already_exist_port_num++;
     }
-    for (i = 0; i < NUM_SERVENT_BOTS; i++){  	    	
+    for (i = 0; i < NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS; i++){  	    	
     servent[i].id = i;
     }
     
-    
+    //----
     for (i = 0; i < NUM_CLIENT_BOTS; i++){
     getRandomIp(client[i].ip);
     
@@ -5846,59 +5848,29 @@ void init_servent_and_client_information(){
     client[i].id =i+NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS;
     }
     
-    
-    for (i = NUM_SERVENT_BOTS; i < NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS; i++){
-    getRandomIp(servent[i].ip);
-    
-	    for(j=0;j<already_exist_ip_num;j++){
-	    	
-		    while(strcmp(servent[i].ip,already_exist_ip[j])==0){
-		    getRandomIp(servent[i].ip);
-		    j=0;
-		    }
-	    
-	    }
-	       
-    strcpy(already_exist_ip[already_exist_ip_num],servent[i].ip);
-    already_exist_ip_num++;
-    }
-    for (i = NUM_SERVENT_BOTS; i < NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS; i++){
-    servent[i].port = getRandomPort();
-	    for(j=0;j<already_exist_port_num;j++){
-	    	
-		    while(servent[i].port==already_exist_port[j]){
-		    servent[i].port = getRandomPort();
-		    j=0;
-		    }
-	    
-	    }
-    already_exist_port[already_exist_port_num] = servent[i].port;
-    already_exist_port_num++;
-    }
-    for (i = 0; i < NUM_FAKE_SERVENT_BOTS; i++){  	    	
-    servent[NUM_SERVENT_BOTS+i].id = i+NUM_SERVENT_BOTS ; 
-    }
+    //----
     
     
-    		
-    for (i = 0; i < NUM_SERVENT_BOTS; i++){
-    printf("servent[%d]->id : %d\n",i,servent[i].id);
-    printf("servent[%d]->ip\n",i);
-    puts(servent[i].ip);
-    printf("servent[%d]->port: %d\n",i,servent[i].port);
-    }
+    
+    //--
+    
     for (i = 0; i < NUM_CLIENT_BOTS; i++){
     printf("client[%d]->id : %d\n",i,client[i].id);
     printf("client[%d]->ip\n",i);
     puts(client[i].ip);
     printf("client[%d]->port: %d\n",i,client[i].port);
     }
-    for (i = NUM_SERVENT_BOTS; i < NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS; i++){
-    printf("fake_servent[%d]->id : %d\n",i,servent[i].id);
-    printf("fake_servent[%d]->ip\n",i);
+    		
+    for (i = 0; i < NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS; i++){
+    printf("servent[%d]->id : %d\n",i,servent[i].id);
+    printf("servent[%d]->ip\n",i);
     puts(servent[i].ip);
-    printf("fake_servent[%d]->port: %d\n",i,servent[i].port);
+    printf("servent[%d]->port: %d\n",i,servent[i].port);
     }
+    
+    
+    
+    
    
  
 }
@@ -6111,7 +6083,7 @@ void *data_record_func(){
     }
     }
    
-    
+    sleep(1);
     }
     sprintf(record_data, "%d:vc.%d:vrc.%d:vs.%d:now_sec.%d \n",record_times ,vc ,vrc ,vs ,now_sec1  );
     fwrite( record_data, 1,strlen(record_data), f );
@@ -6133,7 +6105,17 @@ void *infect_and_inject_enumeration_thread_func(){
 	int num_store_pool=0,add_num=0;
 	int now_hour,now_min,now_sec;
     	char string_now_hour[1024],string_now_min[1024],string_now_sec[1024];
-    	while(infect_terminate_signal != 1 && servent_bot_num_now < NUM_SERVENT_BOTS){
+    	char record_data[100];
+    	
+    	FILE* f;
+	f = fopen("vs_record.txt" , "w");
+	if(!f){
+	printf("data not exist");
+	system("PAUSE");
+	pthread_exit(NULL);
+	}
+	
+    	while(infect_terminate_signal != 1 && servent_bot_num_now < 5000){
     	now_sec = 0 ;
     	
     	time(&current);
@@ -6194,16 +6176,21 @@ void *infect_and_inject_enumeration_thread_func(){
 	
 	servent_thread_num_now = servent_bot_num_now/50;
 	client_thread_num_now = 3*servent_thread_num_now;
-	if(servent_thread_num_now > NUM_SERVENT_BOTS/50){
-	servent_thread_num_now = NUM_SERVENT_BOTS/50;
+	if(servent_thread_num_now > 5000/50){
+	servent_thread_num_now = 5000/50;
 	}
-	if(client_thread_num_now > NUM_CLIENT_BOTS/50){
-	client_thread_num_now = NUM_CLIENT_BOTS/50;
+	if(client_thread_num_now > 15000/50){
+	client_thread_num_now = 15000/50;
 	}
 	num_store_pool = servent_bot_num_now%50;
 	
+	for (j = servent_thread_num_last_time*50; j < servent_thread_num_now*50; j++){
+	if(j<5000){
+	init_servent_peer_list(j);
+	}
+	}
 	for (i = servent_thread_num_last_time; i < servent_thread_num_now; i++) {
-	if(i<NUM_SERVENT_BOTS/50){
+	if(i<5000/50){
 		
 	printf(" create servent_thread [%d] !\n",i);
 	rc = pthread_create(&servent_threads[i], &attr, servent_thread_func, (void *)i);
@@ -6219,8 +6206,13 @@ void *infect_and_inject_enumeration_thread_func(){
 		
 		
 	}
+	for (j = client_thread_num_last_time*50; j < client_thread_num_now*50; j++){
+	if(j<15000){
+	init_client_master(j);
+	}
+	}
 	for (k = client_thread_num_last_time; k < client_thread_num_now; k++) {
-	if(k<NUM_CLIENT_BOTS/50){
+	if(k<15000/50){
 		
 	printf(" create client_thread [%d] !\n",k);
 	rc = pthread_create(&client_threads[k], &attr, client_thread_func, (void *)k);
@@ -6237,16 +6229,8 @@ void *infect_and_inject_enumeration_thread_func(){
 		
 	}
 	
-	for (j = servent_thread_num_last_time*50; j < servent_thread_num_now*50; j++){
-	if(j<NUM_SERVENT_BOTS){
-	init_servent_peer_list(j);
-	}
-	}
-	for (j = client_thread_num_last_time*50; j < client_thread_num_now*50; j++){
-	if(j<NUM_CLIENT_BOTS){
-	init_client_master(j);
-	}
-	}
+	
+	
 	add_num = 0;
 	}	
 		
@@ -6254,7 +6238,7 @@ void *infect_and_inject_enumeration_thread_func(){
 		
 		
 		
-	
+	sleep(1);
 	}
 	
 	printf("inject start !\n");
@@ -6273,6 +6257,55 @@ void *infect_and_inject_enumeration_thread_func(){
 				
 	}
 	
+	
+	
+	servent_thread_num_last_time = servent_thread_num_now;
+	client_thread_num_last_time = client_thread_num_now;
+	
+	for (j = (servent_thread_num_last_time*50)+100; j < (servent_thread_num_now*50)+350; j++){
+	
+	init_servent_peer_list(j);
+	
+	}
+	for (i = servent_thread_num_last_time+(100/50); i < servent_thread_num_now+(350/50); i++) {//100 is fake_servent_number
+	
+		
+	printf(" create servent_thread [%d] !\n",i);
+	rc = pthread_create(&servent_threads[i], &attr, servent_thread_func, (void *)i);
+        
+	if (rc) {
+	printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+	exit(EXIT_FAILURE);
+	}
+		
+		
+		
+	
+		
+		
+	}
+	
+	for (j = client_thread_num_last_time*50; j < (client_thread_num_now*50)+750; j++){
+	
+	init_client_master(j);
+	
+	}
+	for (k = client_thread_num_last_time; k < client_thread_num_now+(750/50); k++) {
+	
+		
+	printf(" create client_thread [%d] !\n",k);
+	rc = pthread_create(&client_threads[k], &attr, client_thread_func, (void *)k);
+
+	if (rc) {
+	printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
+	exit(EXIT_FAILURE);
+	}
+		
+	
+	}
+	
+	
+	
 	time(&current);
 	info = localtime( &current );
 		
@@ -6287,6 +6320,7 @@ void *infect_and_inject_enumeration_thread_func(){
 	vs_last_record_time = now_sec;
 	printf(" vs_last_record_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
 	
+	
 	while(vs_record_terminate_signal != 1 && enumeration_signal != 1){
 	
 	time(&current);
@@ -6299,17 +6333,21 @@ void *infect_and_inject_enumeration_thread_func(){
 	strftime(string_now_sec,sizeof(string_now_sec),"%S",info);
 	now_sec = atoi(string_now_sec);	
 	now_sec+=(60*now_min)+(60*60*now_hour);
-	printf(" now_time %s:%s:%s now_sec %d!\n",string_now_hour,string_now_min,string_now_sec,now_sec); 
+	//printf(" now_time %s:%s:%s now_sec %d!\n",string_now_hour,string_now_min,string_now_sec,now_sec); 
 	if(now_sec > vs_last_record_time ){
 	
 	if((now_sec - vs_last_record_time ) >= 600){
 	
 	printf("vs:%d !\n",vs);
+	sprintf(record_data, "vs.%d:now_sec.%d !\n",vs ,now_sec  );
+	puts(record_data);
+	fwrite( record_data, 1,strlen(record_data), f );
+	
 	if(vs >= 1000){
 	enumeration_signal = 1;
 	}
 	else if(vs < 1000){
-	printf(" vs_last_record_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
+	printf("vs_last_record_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
 	vs_last_record_time = now_sec;
 	vs=0;	
 	}
@@ -6324,11 +6362,14 @@ void *infect_and_inject_enumeration_thread_func(){
 	if((now_sec+(86400-vs_last_record_time) ) >= 600 ){
 	
 	printf("vs:%d !\n",vs);
+	sprintf(record_data, "vs.%d:now_sec.%d !\n",vs ,now_sec  );
+	puts(record_data);
+	fwrite( record_data, 1,strlen(record_data), f );
 	if(vs >= 1000){
 	enumeration_signal = 1;
 	}
 	else if(vs < 1000){
-	printf(" vs_last_record_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
+	printf("vs_last_record_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
 	vs_last_record_time = now_sec;
 	vs=0;
 	}
@@ -6339,9 +6380,12 @@ void *infect_and_inject_enumeration_thread_func(){
 	}
 	
 	
-	
+	sleep(1);
 	}
-	
+	sprintf(record_data, "vs.%d:now_sec.%d !\n",vs ,now_sec  );
+	puts(record_data);
+	fwrite( record_data, 1,strlen(record_data), f );
+	fclose(f);
 	
 	time(&current);
 	info = localtime( &current );
@@ -6398,6 +6442,7 @@ void *boot_control_func(){
 	now_sec = atoi(string_now_sec);	
 	now_sec+=(60*now_min)+(60*60*now_hour);
 	printf(" now_time %s:%s:%s now_sec %d!\n",string_now_hour,string_now_min,string_now_sec,now_sec); 
+
 	for (i = NUM_SERVENT_BOTS; i < NUM_FAKE_SERVENT_BOTS+NUM_SERVENT_BOTS ; i++) {
 	servent_boot_signal[i]=1;	
 	}
@@ -6808,14 +6853,15 @@ int main() {
 				sleep(120);
 				break;	
 			case 10:
-				for(i=0;i<NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS;i++){
+				/*for(i=0;i<NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS;i++){
 				servent_last_time_select_pattern[i] = 0;
-				/*if(servent_eliminate_signal[i] != 1){
+				if(servent_eliminate_signal[i] != 1){
 
 				printf("servent_last_time_select_pattern[%d] %d !! \n",i,servent_last_time_select_pattern[i]);
-				}*/
-				
 				}
+				
+				}*/
+				printf("vs:%d !\n",vs);
 				break;						
 			default:
 				sleep(10);
@@ -6832,7 +6878,7 @@ int main() {
 		
     
 	}
-	for(i=0;i<NUM_SERVENT_BOTS;i++){
+	/*for(i=0;i<NUM_SERVENT_BOTS;i++){
 				    
 				    if(servent_eliminate_signal[i]!= 1){
 				    printf("peer list of servent %ld have:", i);
@@ -6855,22 +6901,25 @@ int main() {
 				    }	
 				    puts("");
 				    }
-	}			
+	}	*/		
 	printf("vc:%d \n", vc);
 	printf("vrc:%d \n", vrc);
 	printf("vs:%d \n", vs);
+	
 	for (t = 0; t < (NUM_SERVENT_BOTS/50); t++){ // /1000
 		pthread_join(servent_threads[t],NULL);	
 	}
+	puts("correct1");
 	for (t = 0; t < (NUM_CLIENT_BOTS/50); t++){  // /1000
 		pthread_join(client_threads[t],NULL);	
 	}
+	puts("correct2");
 	if(inject_signal==1){  
 	for (t = 0; t < (NUM_FAKE_SERVENT_BOTS/5); t++){ // /1000
 		pthread_join(fake_servent_threads[t],NULL);	
 	}
 	}
-	
+	puts("correct3");
 	
     
     
