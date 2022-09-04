@@ -2844,7 +2844,7 @@ void servent_func(long s_id){
 		}
 		servent_peer_num[s_id]=0;
 		for(i=0;i<NUM_SERVENT_PEER;i++){
-		   if(servent_peer_list[s_id][i].peer_id!= -1 && servent_eliminate_signal[servent_peer_list[s_id][i].peer_id] != 1)
+		   if(servent_peer_list[s_id][i].peer_id!= -1 )
 		   servent_peer_num[s_id]++;
 		}
 		if(servent_peer_num[s_id]==0){
@@ -3209,7 +3209,7 @@ void servent_func(long s_id){
 			
 			servent_peer_num[s_id]=0;
 			for(i=0;i<NUM_SERVENT_PEER;i++){
-			   if(servent_peer_list[s_id][i].peer_id!= -1 && servent_eliminate_signal[servent_peer_list[s_id][i].peer_id] != 1)
+			   if(servent_peer_list[s_id][i].peer_id!= -1 )
 			   servent_peer_num[s_id]++;
 			}
 			
@@ -4282,7 +4282,7 @@ void fake_servent_func(long s_id){
 				servent_peer_num[send_target]=0;
 				for(i=0;i<NUM_SERVENT_PEER;i++){
 				
-				if(servent_peer_list[send_target][i].peer_id!= -1 && servent_eliminate_signal[servent_peer_list[send_target][i].peer_id] != 1){
+				if(servent_peer_list[send_target][i].peer_id!= -1 ){
 				servent_peer_num[send_target]++;
 				}	
 				} 
