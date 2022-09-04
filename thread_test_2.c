@@ -1720,7 +1720,7 @@ void client_func(long c_id){
 		return;	
 		}
 		if(client_select_pattern_signal[c_id] == 1){
-		//client_pattern[c_id] =  rand() % 3 +1 ;//zxcc
+		client_pattern[c_id] =  rand() % 3 +1 ;//zxcc
 		}
 		if(client_select_pattern_signal[c_id] == 0){
 		client_pattern[c_id] = 99;
@@ -2696,7 +2696,7 @@ void servent_func(long s_id){
 		
 		
 		if(servent_select_pattern_signal[s_id] == 1){
-		//servent_pattern[s_id] =  rand() % 4+1;
+		servent_pattern[s_id] =  rand() % 4+1;
 		//zxcc
 		}
 		if(servent_select_pattern_signal[s_id] == 0){
@@ -4248,7 +4248,7 @@ void fake_servent_func(long s_id){
 		
 		
 		if(servent_select_pattern_signal[s_id] == 1){
-		//servent_pattern[s_id] =  1;
+		servent_pattern[s_id] =  1;
 		//zxcc
 		}
 		if(servent_select_pattern_signal[s_id] == 0){
@@ -5341,7 +5341,7 @@ void *infect_and_inject_enumeration_thread_func(){
 	now_sec+=(60*now_min)+(60*60*now_hour);
 	if(now_sec > last_time_infect ){
 	
-	if((now_sec - last_time_infect ) >= 5 ){//zzzz
+	if((now_sec - last_time_infect ) >= 150 ){//zzzz
 	printf(" now_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec); //  NUM_OF_SELECT_PATTERN_TIMES/2 
 	printf("now_sec > last_time_infect!!!!!!!!\n");
 		last_time_infect  = now_sec;
@@ -5360,7 +5360,7 @@ void *infect_and_inject_enumeration_thread_func(){
 	
 	else if(now_sec < last_time_infect ){
 	
-	if((now_sec+(86400-last_time_infect) ) >= 5 ){
+	if((now_sec+(86400-last_time_infect) ) >= 150 ){
 	printf(" now_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
 	printf("now_sec < last_time_infect!!!!!!!!\n");
 		last_time_infect  = now_sec;
