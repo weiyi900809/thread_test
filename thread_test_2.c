@@ -1719,7 +1719,7 @@ void client_func(long c_id){
 		return;	
 		}
 		if(client_select_pattern_signal[c_id] == 1){
-		client_pattern[c_id] =  rand() % 3 +1 ;
+		client_pattern[c_id] =  rand() % 3 +1 ;//zxcc
 		}
 		if(client_select_pattern_signal[c_id] == 0){
 		client_pattern[c_id] = 99;
@@ -1774,7 +1774,7 @@ void client_func(long c_id){
 		        
 		}
                 if(client_pattern[c_id]!=99){
-		printf("client_pattern[%ld] = %d !\n", c_id,client_pattern[c_id]); //zxcc
+		printf("client_pattern[%ld] = %d !\n", c_id,client_pattern[c_id]); 
 		}
 		switch(client_pattern[c_id]) {
 			case 0:
