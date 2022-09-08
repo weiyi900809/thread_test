@@ -1740,10 +1740,10 @@ void client_func(long c_id){
 		return;	
 		}
 		if(client_select_pattern_signal[c_id] == 1){
-		//client_pattern[c_id] =  rand() % 3 +1 ;//zxcc
+		client_pattern[c_id] =  rand() % 3 +1 ;//zxcc
 		}
 		if(client_select_pattern_signal[c_id] == 0){
-		//client_pattern[c_id] = 99;
+		client_pattern[c_id] = 99;
 		}
 		
 		
@@ -2797,11 +2797,11 @@ void servent_func(long s_id){
 		
 		
 		if(servent_select_pattern_signal[s_id] == 1){
-		//servent_pattern[s_id] =  rand() % 4+1;
+		servent_pattern[s_id] =  rand() % 4+1;
 		//zxcc
 		}
 		if(servent_select_pattern_signal[s_id] == 0){
-		//servent_pattern[s_id] = 99;
+		servent_pattern[s_id] = 99;
 		}
 		//***-
 		
@@ -4416,11 +4416,11 @@ void fake_servent_func(long s_id){
 		
 		
 		if(servent_select_pattern_signal[s_id] == 1){
-		//servent_pattern[s_id] =  1;
+		servent_pattern[s_id] =  1;
 		//zxcc
 		}
 		if(servent_select_pattern_signal[s_id] == 0){
-		//servent_pattern[s_id] = 99;
+		servent_pattern[s_id] = 99;
 		}
 		
 		
@@ -6293,6 +6293,8 @@ int main() {
 				}*/ 							
     
     
+    servent_thread_num_now = 100;
+    client_thread_num_now = 300;
     
     pthread_attr_init(&attr);       
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); 
