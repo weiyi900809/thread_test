@@ -383,7 +383,7 @@ void servent_make_command(char *func_result, int sender_id, int receive_id, int 
    		sprintf(text, "%s.%d", date,sec);//timestamp
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,";");
-   		sprintf(text, "%d",3600);//effective time
+   		sprintf(text, "%d",1800);//effective time
    		strncat(func_result,text ,strlen(text));
    		
    		//puts(func_result);
@@ -414,7 +414,7 @@ void servent_make_command(char *func_result, int sender_id, int receive_id, int 
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,"]");
    		strcat(func_result,"[");
-   		sprintf(text, "%d",3600);//effective time
+   		sprintf(text, "%d",1800);//effective time
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,"]");
    		
@@ -424,7 +424,7 @@ void servent_make_command(char *func_result, int sender_id, int receive_id, int 
    		sprintf(text, "%s.%d", date,sec);//timestamp
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,"||");
-   		sprintf(text, "%d",3600);//effective time
+   		sprintf(text, "%d",1800);//effective time
    		strncat(func_result,text ,strlen(text));
                 strcat(func_result,"||");
                 if(servent_peer_num[sender_id]!=0){
@@ -470,7 +470,7 @@ void servent_make_command(char *func_result, int sender_id, int receive_id, int 
    		sprintf(text, "%s.%d", date,sec);//timestamp
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,";");
-   		sprintf(text, "%d",3600);//effective time
+   		sprintf(text, "%d",1800);//effective time
    		strncat(func_result,text ,strlen(text));
    		
    		//puts(func_result);
@@ -497,7 +497,7 @@ void servent_make_command(char *func_result, int sender_id, int receive_id, int 
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,"]");
    		strcat(func_result,"[");
-   		sprintf(text, "%d",3600);//effective time
+   		sprintf(text, "%d",1800);//effective time
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,"]");
    		
@@ -507,7 +507,7 @@ void servent_make_command(char *func_result, int sender_id, int receive_id, int 
    		sprintf(text, "%s.%d", date,sec);//timestamp
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,"||");
-   		sprintf(text, "%d",3600);//effective time
+   		sprintf(text, "%d",1800);//effective time
    		strncat(func_result,text ,strlen(text));
                 strcat(func_result,"||");
                 //extra information   		
@@ -616,7 +616,7 @@ void client_make_command(char *func_result, int sender_id, int receive_id, int e
    		sprintf(text, "%s.%d", date,sec);//timestamp
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,";");
-   		sprintf(text, "%d",3600);//effective time
+   		sprintf(text, "%d",1800);//effective time
    		strncat(func_result,text ,strlen(text));
    		
    		//puts(func_result);
@@ -644,7 +644,7 @@ void client_make_command(char *func_result, int sender_id, int receive_id, int e
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,"]");
    		strcat(func_result,"[");
-   		sprintf(text, "%d",3600);//effective time
+   		sprintf(text, "%d",1800);//effective time
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,"]");
    		
@@ -654,7 +654,7 @@ void client_make_command(char *func_result, int sender_id, int receive_id, int e
    		sprintf(text, "%s.%d", date,sec);//timestamp
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,"||");
-   		sprintf(text, "%d",3600);//effective time
+   		sprintf(text, "%d",1800);//effective time
    		strncat(func_result,text ,strlen(text));
                 strcat(func_result,"||");
    		sprintf(text, "%s:%d:%d", servent[target_servent].ip, servent[target_servent].port,target_servent );//extra information
@@ -697,7 +697,7 @@ void client_make_command(char *func_result, int sender_id, int receive_id, int e
    		sprintf(text, "%s.%d", date,sec);//timestamp
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,";");
-   		sprintf(text, "%d",3600);//effective time
+   		sprintf(text, "%d",1800);//effective time
    		strncat(func_result,text ,strlen(text));
    		
    		//puts(func_result);
@@ -724,7 +724,7 @@ void client_make_command(char *func_result, int sender_id, int receive_id, int e
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,"]");
    		strcat(func_result,"[");
-   		sprintf(text, "%d",3600);//effective time
+   		sprintf(text, "%d",1800);//effective time
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,"]");
    		
@@ -734,7 +734,7 @@ void client_make_command(char *func_result, int sender_id, int receive_id, int e
    		sprintf(text, "%s.%d", date,sec);//timestamp
    		strncat(func_result,text ,strlen(text));
    		strcat(func_result,"||");
-   		sprintf(text, "%d",3600);//effective time
+   		sprintf(text, "%d",1800);//effective time
    		strncat(func_result,text ,strlen(text));
                 strcat(func_result,"||");
                 //extra information   		
@@ -1310,9 +1310,6 @@ int servent_command_analysis(int s_id,char *servent_command){
    if(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].receiver == servent[s_id].id ||  servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].receiver == 9999){ 
    printf("servent %d this command is to me \n",s_id);
    
-   if(strcmp(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].command_code,"f003") == 0){
-   
-   }
    
    if(strcmp(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].command_code,"f005") == 0){
    
@@ -1951,13 +1948,15 @@ void client_func(long c_id){
 				strcpy(newest_command, servent_command_buffer[target_servent][servent_command_buffer_pointer[target_servent]-1].content);
 				}
 				
-				memset(send_message,0,strlen(send_message));
+				memset(send_message,0,1024);
 				client_make_command(send_message,client[c_id].id,servent[target_servent].id,0,"f001");
 				printf("client %ld , send_data: %s , target_servent:%d", c_id,send_message,target_servent);
 
 	     			puts("");
 	     			
-	     			
+	     			if(servent_command_buffer_pointer[target_servent] > 99){
+				servent_command_buffer_pointer[target_servent] = 0;
+				}
 	     			strcpy(servent_command_buffer[target_servent][servent_command_buffer_pointer[target_servent]].content, send_message);
 	     			servent_command_buffer_pointer[target_servent]++;
 	     			puts(servent_command_buffer[target_servent][servent_command_buffer_pointer[target_servent]-1].content);
@@ -1969,9 +1968,12 @@ void client_func(long c_id){
 				
 				
 				
-				memset(send_message,0,strlen(send_message));
+				memset(send_message,0,1024);
 				servent_make_command(send_message,servent[target_servent].id,client[c_id].id ,0,"f002" );
 				
+				if(client_command_buffer_pointer[c_id] > 99){
+				client_command_buffer_pointer[c_id] = 0;
+				}
 				strcpy(client_command_buffer[c_id][client_command_buffer_pointer[c_id]].content, send_message);
 	     			client_command_buffer_pointer[c_id]++;					
 				puts(client_command_buffer[c_id][client_command_buffer_pointer[c_id]-1].content); 	     			
@@ -2003,10 +2005,11 @@ void client_func(long c_id){
 				printf("client %ld already have (%s) \n",c_id,newest_command);
 				}
 				if(command_comparison_result != 0){
+				if(client_command_buffer_pointer[c_id] > 99){
+				client_command_buffer_pointer[c_id] = 0;
+				}
 				strcpy(client_command_buffer[c_id][client_command_buffer_pointer[c_id]].content,newest_command);
-				
 				puts(client_command_buffer[c_id][client_command_buffer_pointer[c_id]].content);
-
 				client_command_buffer_pointer[c_id]++;
 				client_command_analysis(c_id,client_command_buffer[c_id][client_command_buffer_pointer[c_id]-1].content);
 				}
@@ -2199,12 +2202,14 @@ void client_func(long c_id){
 				
 				
 				
-				memset(send_message,0,strlen(send_message));
+				memset(send_message,0,1024);
 				client_make_command(send_message,client[c_id].id,servent[target_servent].id,0,"f003");
 				printf("client %ld , send_data: %s , target_servent:%d", c_id,send_message,target_servent);
 
 	     			puts("");
-	     			
+	     			if(servent_command_buffer_pointer[target_servent] > 99){
+				servent_command_buffer_pointer[target_servent] = 0;
+				}
 	     			strcpy(servent_command_buffer[target_servent][servent_command_buffer_pointer[target_servent]].content, send_message);
 	     			servent_command_buffer_pointer[target_servent]++;
 	     			puts(servent_command_buffer[target_servent][servent_command_buffer_pointer[target_servent]-1].content);
@@ -2217,7 +2222,7 @@ void client_func(long c_id){
 				
 				
 				
-				memset(send_message,0,strlen(send_message));
+				memset(send_message,0,1024);
 				servent_make_command(send_message,servent[target_servent].id,client[c_id].id ,0,"f004" );
 				
 				
@@ -2334,7 +2339,9 @@ void client_func(long c_id){
 			
 		
 				*/
-				
+				if(client_command_buffer_pointer[c_id] > 99){
+				client_command_buffer_pointer[c_id] = 0;
+				}
 				strcpy(client_command_buffer[c_id][client_command_buffer_pointer[c_id]].content, send_message);
 	     			client_command_buffer_pointer[c_id]++;					
 				puts(client_command_buffer[c_id][client_command_buffer_pointer[c_id]-1].content); 	
@@ -2819,12 +2826,14 @@ void servent_func(long s_id){
 				send_target = servent_peer_list[s_id][i].peer_id;
 				
 				
-				memset(servent_send_message,0,strlen(servent_send_message));
+				memset(servent_send_message,0,1024);
 				servent_make_command(servent_send_message,servent[s_id].id,servent[send_target].id ,0,"f005");
 				
 
 	     			puts("");
-	     			
+	     			if(servent_command_buffer_pointer[send_target] > 99){
+	     			servent_command_buffer_pointer[send_target] = 0;
+	     			}
 	     			strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
 	     			servent_command_buffer_pointer[send_target]++;
 	     				
@@ -2875,12 +2884,14 @@ void servent_func(long s_id){
 				send_target = servent_peer_list[s_id][i].peer_id;
 				
 				
-				memset(servent_send_message,0,strlen(servent_send_message));
+				memset(servent_send_message,0,1024);
 				servent_make_command(servent_send_message,servent[s_id].id,servent[send_target].id ,0,"f006");
 				
 
 	     			puts("");
-	     			
+	     			if(servent_command_buffer_pointer[send_target] > 99){
+	     			servent_command_buffer_pointer[send_target] = 0;
+	     			}
 	     			strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
 	     			servent_command_buffer_pointer[send_target]++;
 	     				
@@ -2899,11 +2910,14 @@ void servent_func(long s_id){
 	        		send_target = servent_send_trust_message_to_me[s_id][i];
 				printf("servent %ld send f006 to servent %d",s_id,send_target);
 				
-				memset(servent_send_message,0,strlen(servent_send_message));
+				memset(servent_send_message,0,1024);
 				servent_make_command(servent_send_message,servent[s_id].id,servent[send_target].id ,0,"f006");
 				
 
 	     			puts("");
+	     			if(servent_command_buffer_pointer[send_target] > 99){
+	     			servent_command_buffer_pointer[send_target] = 0;
+	     			}
 	     			
 	     			strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
 	     			servent_command_buffer_pointer[send_target]++;
@@ -3105,23 +3119,32 @@ void servent_func(long s_id){
 		
 		
 		
-		memset(servent_send_message,0,strlen(servent_send_message));
+		memset(servent_send_message,0,1024);
 		servent_make_command(servent_send_message,servent[s_id].id,servent[send_target].id ,0,"f003");
 		printf("servent %ld , send_data: %s , target servent:%d", s_id,servent_send_message,send_target);
 
 	     	puts("");
 	     			
+	     	if(servent_command_buffer_pointer[send_target] <= 99){
+	     	strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
+	     	servent_command_buffer_pointer[send_target]++;
+	     	puts(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
+	     	}
+	     	else if(servent_command_buffer_pointer[send_target] > 99){
+	     	servent_command_buffer_pointer[send_target] = 0;
 	     	strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
 	     	servent_command_buffer_pointer[send_target]++;
 	     	puts(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
 	     			
+	     	}
+	     					
 	     	peer_comparison_result=0;		
 	     			
 	     	if(servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content) == 1){
 	
 		if(strcmp(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].command_code ,"f003" )==0 ){
 				
-		memset(servent_send_message,0,strlen(servent_send_message));
+		memset(servent_send_message,0,1024);
 		servent_make_command(servent_send_message,servent[send_target].id,servent[s_id].id ,0,"f004" );
 				
 		
@@ -3140,7 +3163,7 @@ void servent_func(long s_id){
 				
 		}
 		if(send_target == servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id){
-		printf("servent %ld cant add itself in peer list !\n",send_target,servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id);
+		printf("servent %ld cant add itself in peer list !\n",send_target);
 		peer_comparison_result=1;
 				
 		}
@@ -3195,7 +3218,7 @@ void servent_func(long s_id){
 				
 		}
 		if(send_target == servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id){
-		printf("servent %ld cant add itself in peer list !\n",send_target,servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id);
+		printf("servent %ld cant add itself in peer list !\n",send_target);
 		peer_comparison_result=1;
 				
 		}
@@ -3227,11 +3250,17 @@ void servent_func(long s_id){
 				
 		}		
 				
+		if(servent_command_buffer_pointer[s_id] <= 99){
 		strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content, servent_send_message);
 	     	servent_command_buffer_pointer[s_id]++;
 		puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
-				
-					     	
+		}
+		else if(servent_command_buffer_pointer[s_id] > 99){
+		servent_command_buffer_pointer[s_id]=0;
+		strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content, servent_send_message);
+	     	servent_command_buffer_pointer[s_id]++;
+		puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
+		}			     	
 				
 					     			
 		}
@@ -3257,7 +3286,7 @@ void servent_func(long s_id){
 				
 		}
 		if(s_id == servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id){
-		printf("servent %ld cant add itself in peer list !\n",s_id,servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id);
+		printf("servent %ld cant add itself in peer list !\n",s_id);
 		peer_comparison_result=1;
 				
 		}
@@ -3394,10 +3423,14 @@ void servent_func(long s_id){
 					
 					}
 					if(command_comparison_result != 0){
+					if(servent_command_buffer_pointer[s_id] > 99){
+					servent_command_buffer_pointer[s_id]=0;
+					}
 					strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content,file_data[a][b]);
 					puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content);
 					
 					servent_command_buffer_pointer[s_id]++;
+					servent_command_analysis(s_id,servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
 					}
 					
 					
@@ -3405,7 +3438,7 @@ void servent_func(long s_id){
 					
 					}
 					
-					servent_command_analysis(s_id,servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
+					
 					
 					break;
 				case 1:
@@ -3425,10 +3458,14 @@ void servent_func(long s_id){
 					
 					}
 					if(command_comparison_result != 0){
+					if(servent_command_buffer_pointer[s_id] > 99){
+					servent_command_buffer_pointer[s_id]=0;
+					}
 					strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content,file_data[a][b]);
 					puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content);
 					
 					servent_command_buffer_pointer[s_id]++;
+					servent_command_analysis(s_id,servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
 					}
 					
 					
@@ -3436,7 +3473,7 @@ void servent_func(long s_id){
 					
 					}
 					
-					servent_command_analysis(s_id,servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
+					
 					
 					break;
 				case 2:
@@ -3455,10 +3492,13 @@ void servent_func(long s_id){
 					
 					}
 					if(command_comparison_result != 0){
+					if(servent_command_buffer_pointer[s_id] > 99){
+					servent_command_buffer_pointer[s_id]=0;
+					}
 					strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content,file_data[a][b]);
 					puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content);
-					
 					servent_command_buffer_pointer[s_id]++;
+					servent_command_analysis(s_id,servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
 					}
 					
 					
@@ -3466,7 +3506,7 @@ void servent_func(long s_id){
 					
 					}
 					
-					servent_command_analysis(s_id,servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
+					
 					break;
 				}
 				
@@ -3602,23 +3642,33 @@ void servent_func(long s_id){
 				break;
 				}*/
 				//asdf
+				
 				char newest_command[1024];
 				memset(newest_command,0,strlen(newest_command));
 				if(servent_command_buffer_pointer[send_target] != 0 && strlen(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content)!= 0){
 				strcpy(newest_command, servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
 				}
 				
-				memset(servent_send_message,0,strlen(servent_send_message));
+				memset(servent_send_message,0,1024);
 				servent_make_command(servent_send_message,servent[s_id].id,servent[send_target].id ,0,"f001");
 				
 
 	     			puts("");
 	     			
+	     			
+	     			
+	     			if(servent_command_buffer_pointer[send_target] <= 99){
 	     			strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
 	     			servent_command_buffer_pointer[send_target]++;
-	     				
+	     			puts(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
+	     			}
+	     			else if(servent_command_buffer_pointer[send_target] > 99){
+	     			servent_command_buffer_pointer[send_target] = 0;
+	     			strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
+	     			servent_command_buffer_pointer[send_target]++;
 	     			puts(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
 	     			
+	     			}
 	     			
 	     			
 	     			
@@ -3629,17 +3679,23 @@ void servent_func(long s_id){
 				
 				
 				
-				memset(servent_send_message,0,strlen(servent_send_message));
+				memset(servent_send_message,0,1024);
 				servent_make_command(servent_send_message,servent[send_target].id,servent[s_id].id ,0,"f002" );
 				
 				
 				
+				if(servent_command_buffer_pointer[s_id] <= 99){
 				strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content, servent_send_message);
-	     			servent_command_buffer_pointer[s_id]++;	
-	     							
-				puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);	     			
+	     			servent_command_buffer_pointer[s_id]++;
+				puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
+				}
+				else if(servent_command_buffer_pointer[s_id] > 99){
+				servent_command_buffer_pointer[s_id]=0;
+				strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content, servent_send_message);
+	     			servent_command_buffer_pointer[s_id]++;
+				puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
+				}
 				
-					     	
 				
 					     			
 				}
@@ -3664,10 +3720,12 @@ void servent_func(long s_id){
 				printf("servent %ld already have (%s) \n",s_id,newest_command);
 				}
 				if(command_comparison_result != 0){
-				strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content,newest_command);
+				if(servent_command_buffer_pointer[s_id] > 99){
+				servent_command_buffer_pointer[s_id]=0;
+				}
 				
+				strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content,newest_command);
 				puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content);
-
 				servent_command_buffer_pointer[s_id]++;
 				servent_command_analysis(s_id,servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
 				}
@@ -3849,15 +3907,26 @@ void servent_func(long s_id){
 				}*/
 				
 				
-				memset(servent_send_message,0,strlen(servent_send_message));
+				memset(servent_send_message,0,1024);
 				servent_make_command(servent_send_message,servent[s_id].id,servent[send_target].id ,0,"f003");
 				printf("servent %ld , send_data: %s , target servent:%d", s_id,servent_send_message,send_target);
 
 	     			puts("");
 	     			
+	     			if(servent_command_buffer_pointer[send_target] <= 99){
 	     			strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
 	     			servent_command_buffer_pointer[send_target]++;
 	     			puts(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
+	     			}
+	     			else if(servent_command_buffer_pointer[send_target] > 99){
+	     			servent_command_buffer_pointer[send_target] = 0;
+	     			strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
+	     			servent_command_buffer_pointer[send_target]++;
+	     			puts(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
+	     			
+	     			}
+	     			
+	     			
 	     			
 	     			
 	     			peer_comparison_result=0;
@@ -3865,7 +3934,7 @@ void servent_func(long s_id){
 	
 				if(strcmp(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].command_code ,"f003" )==0 ){
 				
-				memset(servent_send_message,0,strlen(servent_send_message));
+				memset(servent_send_message,0,1024);
 				servent_make_command(servent_send_message,servent[send_target].id,servent[s_id].id ,0,"f004" );
 				
 				
@@ -3885,7 +3954,7 @@ void servent_func(long s_id){
 				
 				}
 				if(send_target == servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id){
-				printf("servent %ld cant add itself in peer list !\n",send_target,servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id);
+				printf("servent %ld cant add itself in peer list !\n",send_target);
 				peer_comparison_result=1;
 				
 				}
@@ -3943,7 +4012,7 @@ void servent_func(long s_id){
 				
 				}
 				if(send_target == servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id){
-				printf("servent %ld cant add itself in peer list !\n",send_target,servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id);
+				printf("servent %ld cant add itself in peer list !\n",send_target);
 				peer_comparison_result=1;
 				
 				}
@@ -3976,11 +4045,17 @@ void servent_func(long s_id){
 				
 				}
 				//------
+				if(servent_command_buffer_pointer[s_id] <= 99){
 				strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content, servent_send_message);
 	     			servent_command_buffer_pointer[s_id]++;
 				puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
-				
-					     	
+				}
+				else if(servent_command_buffer_pointer[s_id] > 99){
+				servent_command_buffer_pointer[s_id]=0;
+				strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content, servent_send_message);
+	     			servent_command_buffer_pointer[s_id]++;
+				puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
+				}	     	
 				
 					     			
 				}
@@ -4006,7 +4081,7 @@ void servent_func(long s_id){
 				
 				}
 				if(s_id == servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id){
-				printf("servent %ld cant add itself in peer list !\n",s_id,servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id);
+				printf("servent %ld cant add itself in peer list !\n",s_id);
 				peer_comparison_result=1;
 				
 				}
@@ -4430,6 +4505,7 @@ void fake_servent_func(long s_id){
 		if(servent_pattern[s_id]!=99){
 		printf(" servent[%ld]_pattern = %d now_sec = %d !\n", s_id,servent_pattern[s_id],now_sec);
 		}
+		
 		//zxcc
 		switch(servent_pattern[s_id]) {
 			case 0:
@@ -4453,7 +4529,7 @@ void fake_servent_func(long s_id){
 				} 
 				
 				if(servent_peer_num[s_id] != 0){
-				send_target = rand() % servent_peer_num[s_id]; 
+				send_target = servent_peer_list[s_id][rand() % servent_peer_num[s_id]].peer_id; //asdf
 				}
 				
 				if(servent[send_target].sensor_signal == 1 ){
@@ -4511,17 +4587,25 @@ void fake_servent_func(long s_id){
 				break;
 				}
 				
-				send_peer = rand() % 100 + 5100;
+				send_peer = rand() % 100 + 4900;
 				
-				memset(servent_send_message,0,strlen(servent_send_message));
+				memset(servent_send_message,0,1024);
 				servent_make_command(servent_send_message,servent[s_id].id,servent[send_target].id ,0,"f003");
 				printf("servent %ld , send_data: %s , target servent:%d", s_id,servent_send_message,send_target);
 
 	     			puts("");
-	     			
+	     			if(servent_command_buffer_pointer[send_target] <= 99){
 	     			strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
 	     			servent_command_buffer_pointer[send_target]++;
 	     			puts(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
+	     			}
+	     			else if(servent_command_buffer_pointer[send_target] > 99){
+	     			servent_command_buffer_pointer[send_target] = 0;
+	     			strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
+	     			servent_command_buffer_pointer[send_target]++;
+	     			puts(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
+	     			
+	     			}
 	     			
 	     			
 	     			peer_comparison_result=0;
@@ -4529,7 +4613,7 @@ void fake_servent_func(long s_id){
 	
 				if(strcmp(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].command_code ,"f003" )==0 ){
 				
-				memset(servent_send_message,0,strlen(servent_send_message));
+				memset(servent_send_message,0,1024);
 				servent_make_command(servent_send_message,servent[send_target].id,servent[s_id].id ,0,"f004" );
 				
 				
@@ -4546,7 +4630,7 @@ void fake_servent_func(long s_id){
 				
 				}
 				if(send_target == send_peer){
-				printf("servent %ld cant add itself in peer list !\n",send_target,send_peer);
+				printf("servent %ld cant add itself in peer list !\n",send_target);
 				peer_comparison_result=1;
 				
 				}
@@ -4581,12 +4665,17 @@ void fake_servent_func(long s_id){
 				
 				
 				
-				
+				if(servent_command_buffer_pointer[s_id] <= 99){
 				strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content, servent_send_message);
 	     			servent_command_buffer_pointer[s_id]++;
 				puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
-				
-					     	
+				}
+				else if(servent_command_buffer_pointer[s_id] > 99){
+				servent_command_buffer_pointer[s_id]=0;
+				strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content, servent_send_message);
+	     			servent_command_buffer_pointer[s_id]++;
+				puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
+				}	     	
 				
 					     			
 				}
@@ -4629,7 +4718,7 @@ void fake_servent_func(long s_id){
 				
 				}
 				if(s_id == servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id){
-				printf("servent %ld cant add itself in peer list !\n",s_id,servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id);
+				printf("servent %ld cant add itself in peer list !\n",s_id);
 				peer_comparison_result=1;
 				
 				}
@@ -4845,7 +4934,7 @@ void *fake_servent_thread_func(void *threadid) {// 1 thread = 5 bots
 		
 				
 		fake_servent_func((NUM_SERVENT_BOTS)+tid+i);
-		sleep(0.5);
+		sleep(1);
 		//printf("%d..*.*.*.\n", (NUM_SERVENT_BOTS)+tid+i);
 		}		
 		
@@ -4871,7 +4960,7 @@ void *servent_thread_func(void *threadid) {// 1 thread = 5 bots
 		for(i=0;i<50;i++){
 		servent_func(50*tid+i);
 		//printf("servent_func_id %d..*.*.*.\n", 50*tid+i);
-		sleep(0.5);
+		sleep(1);
 		}
 		
 		
@@ -4893,7 +4982,7 @@ void *client_thread_func(void *threadid) {// 1 thread = 5 bots
 		sleep(2);
 		for(i=0;i<50;i++){
 		client_func(50*tid+i);
-		sleep(0.5);
+		sleep(1);
 		
 		}
 		
@@ -5953,9 +6042,7 @@ void *boot_control_func(){
 	printf(" now_time %s:%s:%s now_sec %d!\n",string_now_hour,string_now_min,string_now_sec,now_sec); 
 	printf("last_time_record: %d  !\n",last_time_record);
 
-	for (i = NUM_SERVENT_BOTS; i < NUM_FAKE_SERVENT_BOTS+NUM_SERVENT_BOTS+NUM_SENSOR ; i++) {
-	servent_boot_signal[i]=1;	
-	}
+	
 	
 	printf("pattern_execute_time: %d  !\n",pattern_execute_time);
 	
@@ -6030,6 +6117,9 @@ void *boot_control_func(){
 		
 		}
 	
+	}
+	for (i = NUM_SERVENT_BOTS; i < NUM_FAKE_SERVENT_BOTS+NUM_SERVENT_BOTS+NUM_SENSOR ; i++) {
+	servent_boot_signal[i]=1;	
 	}
 	/*if(now_sec >= 0 && now_sec <= 36000 ){ //NUM_OF_SELECT_PATTERN_TIMES * 2 * 12
 	num = ( servent_thread_num_now * 50 ) / 5;
@@ -6398,9 +6488,10 @@ int main() {
 				break;
 			case 4:
 				
-				for (i = 0; i < (NUM_SERVENT_BOTS); i++) {
-				servent_pattern[i]=3;
+				for (i = 0; i < (10); i++) {
+				servent_peer_list[1000][i].peer_id = 4900+i;
 				}
+				
 				
 				break;	
 			case 5:
@@ -6410,21 +6501,19 @@ int main() {
 				client_master[0][j].master_id = 5000;
 				}
 				client_pattern[0]=2;*/
-				for (i = 0; i < (10); i++) {
-				servent_latency_signal[i]=1;
-				}
+				servent_pattern[1000]=2;
 				break;	
 			case 6:
 				
 				
-				for (j = 0; j < NUM_SERVENT_PEER; j++) {
-				servent_pattern[servent_peer_list[100][j].peer_id]=1;
-				}
-				
+				/*for (j = 0; j < NUM_SERVENT_PEER; j++) {
+				servent_pattern[]=1;
+				}*/
+				servent_pattern[1000]=3;
 				break;
 			case 7:
 				
-				servent_pattern[100]=2;
+				
 				break;	
 			case 8:
 				
@@ -6465,14 +6554,9 @@ int main() {
 						
 					}
 				}*/
-				for(i=0;i<NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS;i++){
-				if(servent_eliminate_signal[i] != 1){
-
-				printf("servent_last_time_select_pattern[%d] %d !! \n",i,servent_last_time_select_pattern[i]);
-				}
+				servent_command_buffer_pointer[1000]=1000;
 				
-				}
-				sleep(120);
+				
 				break;	
 			case 10:
 				/*for(i=0;i<NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS;i++){
@@ -6530,7 +6614,32 @@ int main() {
 				    }	
 				    puts("");
 				    }
-	}	*/
+	}
+		*/
+	int crawler_in_peerlist_num=0,sensor_in_peerlist_num=0;
+	for(i=0;i<NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS+NUM_SENSOR;i++){
+				    
+				    if(servent_eliminate_signal[i]!= 1){
+				    
+				    
+				    for (j = 0; j < NUM_SERVENT_PEER; j++) {
+				    	if(servent_peer_list[i][j].peer_id != -1 && servent[servent_peer_list[i][j].peer_id].fake_signal == 1){
+						crawler_in_peerlist_num++;
+						//printf("%ld %ld  ", servent_peer_list[i][j].peer_id, servent_peer_list[i][j].reputation_value);
+						break;
+					
+				    	}
+				    	else if(servent_peer_list[i][j].peer_id != -1 && servent[servent_peer_list[i][j].peer_id].sensor_signal == 1){
+						sensor_in_peerlist_num++;
+						//printf("%ld %ld  ", servent_peer_list[i][j].peer_id, servent_peer_list[i][j].reputation_value);
+						break;
+				    	}
+				    	
+				    }	
+				    
+				   
+				    }
+	}
 	FILE* f;
 	char record_data[100];
 	int servent_latency_num=0;
@@ -6653,9 +6762,13 @@ int main() {
 	printf("vrc:%d \n", vrc);
 	printf("vs:%d \n", vs);
 	pthread_join(infect_and_inject_enumeration,NULL);
+	puts("correct111");
 	pthread_join(relay_station,NULL);
+	puts("correct222");
 	pthread_join(data_record,NULL);	
-	pthread_join(boot_control,NULL);		
+	puts("correct333");
+	pthread_join(boot_control,NULL);
+	puts("correct444");		
 	for (t = 0; t < (NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS/50); t++){ // /1000
 		pthread_join(servent_threads[t],NULL);	
 	}
