@@ -20,10 +20,10 @@
 #define reputation_value_max 5
 #define reputation_value_min 0
 
-#define NUM_SERVENT_BOTS 4800
+#define NUM_SERVENT_BOTS 19800
 #define NUM_FAKE_SERVENT_BOTS 100
 #define NUM_SENSOR 100
-#define NUM_CLIENT_BOTS 15000
+#define NUM_CLIENT_BOTS 10
 
 
 
@@ -366,6 +366,7 @@ void client_sort_peer(int c_id){
 void servent_make_command(char *func_result, int sender_id, int receive_id, int extra_information_target, char *send_command_code){
    int i,j,format=rand() % 3+1;
    char text[80];
+   int send_peerr=0;
    time(&current);
    info = localtime( &current );
    strftime(date,sizeof(date),"%Y.%m.%d",info);
@@ -424,14 +425,14 @@ void servent_make_command(char *func_result, int sender_id, int receive_id, int 
        }
      }
    }
-   int send_peer_from_sensor_or_crawler=0;
-   send_peer_from_sensor_or_crawler=rand() % 100 + (NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS);
+   
+   send_peerr = servent_peer_list[sender_id][ rand() % 10 ].peer_id;
    switch(format) {
    	case 1:
    		
    		strncat(func_result,send_command_code ,strlen(send_command_code));//command_code
    		strcat(func_result,";");
-   		sprintf(text, "%s:%d:%d", servent[servent_peer_list[sender_id][servent_peer_num[sender_id]-1].peer_id].ip,servent[servent_peer_list[sender_id][servent_peer_num[sender_id]-1].peer_id].port,servent_peer_list[sender_id][servent_peer_num[sender_id]-1].peer_id  );
+   		sprintf(text, "%s:%d:%d", servent[send_peerr].ip,servent[send_peerr].port,send_peerr  );
    		//extra information
    		strncat(func_result,text ,strlen(text));//extra information
                 strcat(func_result,";");
@@ -453,7 +454,7 @@ void servent_make_command(char *func_result, int sender_id, int receive_id, int 
    		break;
    	case 2:
    		strcat(func_result,"[");
-   		sprintf(text, "%s:%d:%d", servent[servent_peer_list[sender_id][servent_peer_num[sender_id]-1].peer_id].ip,servent[servent_peer_list[sender_id][servent_peer_num[sender_id]-1].peer_id].port,servent_peer_list[sender_id][servent_peer_num[sender_id]-1].peer_id  );
+   		sprintf(text, "%s:%d:%d", servent[send_peerr].ip,servent[send_peerr].port,send_peerr  );
    		//extra information
    		strncat(func_result,text ,strlen(text));//extra information
    		strcat(func_result,"]");
@@ -486,7 +487,7 @@ void servent_make_command(char *func_result, int sender_id, int receive_id, int 
    		sprintf(text, "%d",NUM_OF_SELECT_PATTERN_TIMES*4);//effective time
    		strncat(func_result,text ,strlen(text));
                 strcat(func_result,"||");
-                sprintf(text, "%s:%d:%d", servent[servent_peer_list[sender_id][servent_peer_num[sender_id]-1].peer_id].ip,servent[servent_peer_list[sender_id][servent_peer_num[sender_id]-1].peer_id].port,servent_peer_list[sender_id][servent_peer_num[sender_id]-1].peer_id  );
+                sprintf(text, "%s:%d:%d", servent[send_peerr].ip,servent[send_peerr].port,send_peerr  );
    		//extra information
    		strncat(func_result,text ,strlen(text));//extra information		
    		strcat(func_result,"||");
@@ -664,7 +665,7 @@ void client_make_command(char *func_result, int sender_id, int receive_id, int e
    //s5s5
    
    
-   target_servent = client_master[c_id][client_master_num[c_id]-1].master_id;
+   target_servent = client_master[c_id][rand() % 10].master_id;
    
    switch(format) {
    	case 1:
@@ -1121,102 +1122,7 @@ int servent_command_analysis(int s_id,char *servent_command){
    		break;	    
    }
   
-  		time(&current);
-		info = localtime( &current );
-		
-		strftime(string_now_year,sizeof(string_now_year),"%Y",info);
-		now_year = atoi(string_now_year);
-		strftime(string_now_month,sizeof(string_now_month),"%m",info);
-		now_month = atoi(string_now_month);
-		strftime(string_now_day,sizeof(string_now_day),"%d",info);
-		now_day = atoi(string_now_day);
-		
-		strftime(string_now_hour,sizeof(string_now_hour),"%H",info);
-		now_hour = atoi(string_now_hour);	
-		strftime(string_now_min,sizeof(string_now_min),"%M",info);
-		now_min = atoi(string_now_min);	
-		strftime(string_now_sec,sizeof(string_now_sec),"%S",info);
-		now_sec = atoi(string_now_sec);	
-		now_sec+=(60*now_min)+(60*60*now_hour);
-		
-  		if(strlen(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content) != 0){
-			
-			//puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
-			timestamp_split(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].timestamp ,
-			string_command_year,string_command_month,string_command_day,string_command_sec);
-			
-			command_year = atoi(string_command_year);	
-			command_month = atoi(string_command_month);	
-			command_day = atoi(string_command_day);	
-			command_sec = atoi(string_command_sec);	
-			//printf("effective_time %d  !\n", servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].effective_time);
-			deadline_sec = command_sec + servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].effective_time;
-			deadline_day = command_day ;
-			deadline_month = command_month ;
-			deadline_year = command_year ;
-			int leap_year=0;
-			if((deadline_year % 4 == 0 && deadline_year % 100 != 0 ) || deadline_year % 400 == 0) {
-			leap_year = 1;
-			}
-			//printf("leap_year %d  !\n", leap_year);
-			
-			if(deadline_sec > 86400 ){
-			deadline_sec = deadline_sec-86400;
-			deadline_day++;
-			}
-			if( (deadline_month == 4 || deadline_month == 6 || deadline_month == 9 || deadline_month == 11) && deadline_day > 30 ){
-			deadline_day = 1;
-			deadline_month++;
-			}
-			if( (deadline_month == 1 || deadline_month == 3 || deadline_month == 5 || deadline_month == 7 || deadline_month == 10 || deadline_month == 12 ) && deadline_day > 31 ){
-			deadline_day = 1;
-			deadline_month++;
-			}
-			if( leap_year == 1 && ( deadline_month == 2) && ( deadline_day > 29) ){
-			deadline_day = 1;
-			deadline_month++;
-			}
-			if( leap_year == 0 && ( deadline_month == 2) && ( deadline_day > 28) ){
-			deadline_day = 1;
-			deadline_month++;
-			}
-			if( deadline_month > 12 ){
-			deadline_month = 1;
-			deadline_year++;
-			}
-			
-			
-			if(now_year > deadline_year){
-			delete_command_signal = 1;
-			}
-			if(now_year == deadline_year){
-				if(now_month > deadline_month){
-				delete_command_signal = 1;
-				}
-				if(now_month == deadline_month){
-					if(now_day > deadline_day){
-					delete_command_signal = 1;
-					}
-					if(now_day == deadline_day){
-						if(now_sec >= deadline_sec){
-						delete_command_signal = 1;
-						}
-					}
-					
-				}
-				
-			}
-			
-			
-			if(delete_command_signal == 1){
-			printf("this command is over deadline \n");
-		        memset(&servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1],0,sizeof(Command));
-			servent_command_buffer_pointer[s_id]--;
-			
-			return 0;
-			}
-			
-		}
+  		
 	   	
    int command_comparison_result=1,
    extra_information_comparison_result=1,
@@ -1258,156 +1164,17 @@ int servent_command_analysis(int s_id,char *servent_command){
    
    
    							
-   if(command_comparison_result == 0 ){//zxxx
+   /*if(command_comparison_result == 0 ){//zxxx
    printf("servent %ld already have (%s) \n",s_id,servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
    memset(&servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1],0,sizeof(Command));
    servent_command_buffer_pointer[s_id]--;
    return 0;				
-   }
+   }*/
    
    	
    if(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].receiver == servent[s_id].id ||  servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].receiver == 9999){ 
    printf("servent %d this command is to me \n",s_id);
-   
-   
-   if(strcmp(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].command_code,"f005") == 0){
-   
-   printf("servent %ld receive trust message !\n",s_id);
-   if(servent_latency_signal[s_id]!=1){
-   servent_trust_threshold[s_id]++;
-   }
-   
-   servent_send_trust_message_to_me[s_id][servent_send_trust_message_to_me_pointer[s_id]] = servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].sender;
-   servent_send_trust_message_to_me_pointer[s_id]++;
-   }
-   
-   if(strcmp(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].command_code,"f006") == 0){
-   	printf("servent %d cannt communicate servent %d anymore \n",s_id,servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].sender);
-   	servent_peer_num[s_id]=0;
-	for(i=0;i<NUM_SERVENT_PEER;i++){
-	if(servent_peer_list[s_id][i].peer_id!= -1)
-	servent_peer_num[s_id]++;
-	}
-		
-	if(servent_peer_num[s_id]!=0){
-		
-		for(i=0;i<NUM_SERVENT_PEER;i++){
-			if(servent_peer_list[s_id][i].peer_id != -1 && i>=servent_peer_num[s_id]){
-				for ( j = 0; j < servent_peer_num[s_id]; j++) {
-					if(servent_peer_list[s_id][j].peer_id == -1){
-					    	   Peer temp = servent_peer_list[s_id][j];
-						   servent_peer_list[s_id][j] = servent_peer_list[s_id][i];
-						   servent_peer_list[s_id][i] = temp;
-						   break;
-					}
-				   
-				}
-			   
-			}
-		   
-		}
-		   
-	}
-						
-	for ( i = 0; i < servent_peer_num[s_id]; i++) {	
-		if(servent_peer_list[s_id][i].peer_id == servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].sender && servent_peer_list[s_id][i].trust_signal == 0){
-		servent_peer_list[s_id][i].trust_signal = 1;	
-		}
-	}
-         
-   }
-   
-   
-   if(strcmp(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].command_code,"f007") == 0){//***-
-   
-   
-   
-   if(servent_already_execute_resurrection_signal[s_id]!=1){
-   printf("servent %d execute command f007 \n",s_id);
-   
-   //printf("!!!%d \n",servent_latency_signal[s_id]);
-   
-   if(servent_latency_signal[s_id]==1){
-   
-   servent_peer_num[s_id]=0;
-   for(i=0;i<NUM_SERVENT_PEER;i++){
-   if(servent_peer_list[s_id][i].peer_id!= -1)
-   servent_peer_num[s_id]++;
-   }
-   for(i=0;i<servent_peer_num[s_id];i++){
-   if(servent_peer_list[s_id][i].reputation_value <= limit && servent_peer_list[s_id][i].peer_id != -1 ){
-   
-       printf("servent %d  remove servent %d\n" ,s_id,servent_peer_list[s_id][i].peer_id);
-       servent_peer_list[s_id][i].peer_id = -1;
-       servent_peer_list[s_id][i].reputation_value = 0;
-       
-       
-   }
-   /*if( servent_peer_list[s_id][i].peer_id !=-1 ){
-   servent_peer_list[s_id][i].trust_signal = 0;
-   //servent_peer_list[s_id][i].already_send_TM_signal = 0;
-   }*/
-   
-   
-   }
 
-   
-   servent_resurrection_request_peer_signal[s_id] = 1; 
-   
-   }
-   
-   if(servent_latency_signal[s_id]==0 ){
-   
-   int high_confidence_num = 0;
-   servent_peer_num[s_id]=0;
-   for(i=0;i<NUM_SERVENT_PEER;i++){
-   if(servent_peer_list[s_id][i].peer_id!= -1)
-   servent_peer_num[s_id]++;
-   }
-   for(i=0;i<servent_peer_num[s_id];i++){
-   if(servent_peer_list[s_id][i].reputation_value > limit && servent_peer_list[s_id][i].peer_id !=-1 ){
-       high_confidence_num++;
-       servent_peer_list[s_id][i].trust_signal = 0;
-       //servent_peer_list[s_id][i].already_send_TM_signal = 0;
-   }
-   else if(servent_peer_list[s_id][i].reputation_value <= limit && servent_peer_list[s_id][i].peer_id !=-1 ){
-   
-       printf("servent %d  remove servent %d\n" ,s_id,servent_peer_list[s_id][i].peer_id);
-       servent_peer_list[s_id][i].peer_id = -1;
-       servent_peer_list[s_id][i].reputation_value = 0;
-       
-   }
-
-   }
-   if(high_confidence_num < 6){
-   printf("servent %d have not enough high confidence peers  \n" ,s_id);
-   servent_eliminate_signal[s_id] = 1;
-   
-   }
-   if(high_confidence_num >= 6){
-   servent_resurrection_request_peer_signal[s_id] = 1;
-   
-   }
-   
-   
-   
-   
-
-   				
-   
-   
-   
-   }
-   servent_already_execute_resurrection_signal[s_id]=1;
-   servent_latency_signal[s_id]=0;
-
-   
-   }
-   
-   
-   
-   }
-   
    return 1;
    }
    
@@ -1633,6 +1400,8 @@ void client_func(long c_id){
     char send_message[1024];
     int invalid_peer_num=0;
     int peer_num=0;
+    char string_ip[100],string_port[100],string_id[100];
+    int send_peer=0;
 		if(client_work_over[c_id] == 1){
 			return;
 		}
@@ -1696,7 +1465,7 @@ void client_func(long c_id){
 		return;	
 		}
 		if(client_select_pattern_signal[c_id] == 1){
-		client_pattern[c_id] =  rand() % 3 +1 ;//zxcc
+		client_pattern[c_id] =  rand() % 2 +1 ;//zxcc
 		}
 		if(client_select_pattern_signal[c_id] == 0){
 		client_pattern[c_id] = 99;
@@ -1739,39 +1508,7 @@ void client_func(long c_id){
 		}
 		
 		
-		for ( i = 0; i < client_master_num[c_id]; i++) {		   
-			if (client_master[c_id][i].reputation_value < 0) {
-		        client_pattern[c_id]=2;
-		         
-		        }
-		        /*if (client_master[c_id][i].reputation_value == reputation_value_max && client_master[c_id][i].already_send_TM_signal == 0 
-		        && servent_latency_signal[client_master[c_id][i].master_id] == 0 ) {   
-
-		                client_master[c_id][i].already_send_TM_signal = 1;
-		                client_master[c_id][i].trust_signal = 1;
-				target_servent = client_master[c_id][i].master_id;
-				
-				
-				memset(send_message,0,1024);
-				
-				client_make_command(send_message,client[c_id].id,servent[target_servent].id,0,"f005");
-
-	     			puts("");
-	     			if(servent_command_buffer_pointer[target_servent] > 99){
-	     			servent_command_buffer_pointer[target_servent] = 0;
-	     			}
-	     			strcpy(servent_command_buffer[target_servent][servent_command_buffer_pointer[target_servent]].content, send_message);
-	     			servent_command_buffer_pointer[target_servent]++;
-	     				
-	     			puts(servent_command_buffer[target_servent][servent_command_buffer_pointer[target_servent]-1].content);
-	     			
-	     			
-	     			servent_command_analysis(target_servent,servent_command_buffer[target_servent][servent_command_buffer_pointer[target_servent]-1].content); 
-				
-		        
-		        }*/
-		        
-		}
+		
                 if(client_pattern[c_id]!=99){
 		printf("client_pattern[%ld] = %d !\n", c_id,client_pattern[c_id]); 
 		client_log[c_id][client_execute_pattern_time[c_id]].num_pattern = client_pattern[c_id];
@@ -1870,13 +1607,7 @@ void client_func(long c_id){
 				
 				if(servent_boot_signal[target_servent]==0){
 				printf("servent %ld shut down  \n",target_servent);
-				printf("servent %ld reputation_value--!!! \n",target_servent);
-				for ( i = 0; i < client_master_num[c_id]; i++) {
-					if(client_master[c_id][i].master_id == target_servent && client_master[c_id][i].reputation_value > -1 ){//
-						client_master[c_id][i].reputation_value--;
-					}
-					
-				}
+				
 				client_log[c_id][client_execute_pattern_time[c_id]].communication_result = 0;
 				client_execute_pattern_time[c_id]++;
 				client_pattern[c_id]=99;
@@ -1903,20 +1634,6 @@ void client_func(long c_id){
 				
 				
 				
-				if(servent_latency_signal[target_servent]==1){
-				printf("servent %ld already turn to latency bot  \n",target_servent);
-				printf("servent %ld reputation_value--!!! \n",target_servent);
-				for ( i = 0; i < client_master_num[c_id]; i++) {
-					if(client_master[c_id][i].master_id == target_servent && client_master[c_id][i].reputation_value > -1 ){//
-						client_master[c_id][i].reputation_value--;
-					}
-					
-				}
-				client_log[c_id][client_execute_pattern_time[c_id]].communication_result = 0;
-				client_execute_pattern_time[c_id]++;
-				client_pattern[c_id]=99;
-				break;
-				}
 				
 				//--------------------
 				
@@ -1946,22 +1663,7 @@ void client_func(long c_id){
 	     			strcpy(servent_command_buffer[target_servent][servent_command_buffer_pointer[target_servent]].content, send_message);
 	     			servent_command_buffer_pointer[target_servent]++;
 	     			puts(servent_command_buffer[target_servent][servent_command_buffer_pointer[target_servent]-1].content);
-	     			if(servent_command_analysis(target_servent,servent_command_buffer[target_servent][servent_command_buffer_pointer[target_servent]-1].content) == 0 
-	     			){// zxxx //&& servent[target_servent].sensor_signal != 1 && servent[target_servent].fake_signal != 1
-
-				printf("servent %ld reputation_value--!!! \n",target_servent);
-				for ( i = 0; i < client_master_num[c_id]; i++) {
-					if(client_master[c_id][i].master_id == target_servent && client_master[c_id][i].reputation_value > -1 ){//
-						client_master[c_id][i].reputation_value--;
-					}
-					
-				}
-				client_log[c_id][client_execute_pattern_time[c_id]].communication_result = 0;
-				client_execute_pattern_time[c_id]++;
-				client_pattern[c_id]=99;
-				break;
-				
-	     			}
+	     			
 	     			
 	     			if(servent_command_analysis(target_servent,servent_command_buffer[target_servent][servent_command_buffer_pointer[target_servent]-1].content) == 1){
 	
@@ -2023,12 +1725,7 @@ void client_func(long c_id){
 				
 				client_rearrange_peer(c_id);   
 				
-				for(i=0;i<client_master_num[c_id];i++){	
-				if(client_master[c_id][i].master_id ==  target_servent && client_master[c_id][i].reputation_value < reputation_value_max ){
-				client_master[c_id][i].reputation_value++;
-				break;
-				}
-				}
+				
 				
 				
 					
@@ -2153,13 +1850,7 @@ void client_func(long c_id){
 				
 				if(servent_boot_signal[target_servent]==0){
 				printf("servent %ld shut down  \n",target_servent);
-				printf("servent %ld reputation_value--!!! \n",target_servent);
-				for ( i = 0; i < client_master_num[c_id]; i++) {
-					if(client_master[c_id][i].master_id == target_servent && client_master[c_id][i].reputation_value > -1 ){//
-						client_master[c_id][i].reputation_value--;
-					}
-					
-				}
+				
 				client_log[c_id][client_execute_pattern_time[c_id]].communication_result = 0;
 				client_execute_pattern_time[c_id]++;   
 				client_pattern[c_id]=99;
@@ -2181,20 +1872,7 @@ void client_func(long c_id){
 						client[c_id].request_signal = 1;
 						vs++;
 				}
-				if(servent_latency_signal[target_servent]==1){
-				printf("servent %ld already turn to latency bot  \n",target_servent);
-				printf("servent %ld reputation_value--!!! \n",target_servent);
-				for ( i = 0; i < client_master_num[c_id]; i++) {
-					if(client_master[c_id][i].master_id == target_servent && client_master[c_id][i].reputation_value > -1 ){//
-						client_master[c_id][i].reputation_value--;
-					}
-					
-				}
-				client_log[c_id][client_execute_pattern_time[c_id]].communication_result = 0;
-				client_execute_pattern_time[c_id]++; 
-				client_pattern[c_id]=99;
-				break;
-				}
+				
 				if(servent_peer_num[target_servent]==0){
 				printf("target_servent:servent %ld doesnt has peer !!! \n",target_servent);
 				
@@ -2222,23 +1900,7 @@ void client_func(long c_id){
 	     			strcpy(servent_command_buffer[target_servent][servent_command_buffer_pointer[target_servent]].content, send_message);
 	     			servent_command_buffer_pointer[target_servent]++;
 	     			puts(servent_command_buffer[target_servent][servent_command_buffer_pointer[target_servent]-1].content);
-	     			if(servent_command_analysis(target_servent,servent_command_buffer[target_servent][servent_command_buffer_pointer[target_servent]-1].content) == 0
-
-	     			){// zxxx //&& servent[target_servent].sensor_signal != 1 && servent[target_servent].fake_signal != 1
-
-				printf("servent %ld reputation_value--!!! \n",target_servent);
-				for ( i = 0; i < client_master_num[c_id]; i++) {
-					if(client_master[c_id][i].master_id == target_servent && client_master[c_id][i].reputation_value > -1 ){//
-						client_master[c_id][i].reputation_value--;
-					}
-					
-				}
-				client_log[c_id][client_execute_pattern_time[c_id]].communication_result = 0;
-				client_execute_pattern_time[c_id]++;
-				client_pattern[c_id]=99;
-				break;
-				
-	     			}
+	     			
 	     			
 	     			peer_comparison_result=0;
 	     			if(servent_command_analysis(target_servent,servent_command_buffer[target_servent][servent_command_buffer_pointer[target_servent]-1].content) == 1){
@@ -2246,7 +1908,8 @@ void client_func(long c_id){
 				if(strcmp(servent_command_buffer[target_servent][servent_command_buffer_pointer[target_servent]-1].command_code ,"f003" )==0 ){
 				
 				
-				
+				extra_information_split(servent_command_buffer[target_servent][servent_command_buffer_pointer[target_servent]-1].extra_information,string_ip,string_port,string_id);
+				send_peer = atoi(string_id);
 				
 				memset(send_message,0,1024);
 				servent_make_command(send_message,servent[target_servent].id,client[c_id].id ,0,"f004" );
@@ -2256,24 +1919,24 @@ void client_func(long c_id){
 				
 				//s5s5
 				for ( i = 0; i < servent_peer_num[target_servent]; i++) {
-				if(servent_peer_list[target_servent][i].peer_id == client_master[c_id][client_master_num[c_id]-1].master_id){
+				if(servent_peer_list[target_servent][i].peer_id == send_peer){
 				
 				
 				
-				printf("servent %ld already have servent %d in peer list !\n",target_servent,client_master[c_id][client_master_num[c_id]-1].master_id);
+				printf("servent %ld already have servent %d in peer list !\n",target_servent,send_peer);
 				peer_comparison_result=1;
 				break;
 				}
 				
 				
 				}
-				if(target_servent == client_master[c_id][client_master_num[c_id]-1].master_id){
+				if(target_servent == send_peer){
 				printf("servent %ld cant add itself in peer list !\n",target_servent);
 				
 				peer_comparison_result=1;
 				
 				}
-				if(client_master[c_id][client_master_num[c_id]-1].master_id == -1){
+				if(send_peer == -1){
 				printf("servent %ld cant add invalid peer in peer list !\n",target_servent);
 				
 				peer_comparison_result=1;
@@ -2281,8 +1944,8 @@ void client_func(long c_id){
 				}
 				if(peer_comparison_result == 0 && servent_peer_num[target_servent]==NUM_SERVENT_PEER){//tttt
 				printf("servent %ld remove servent %d in peer list !\n",target_servent,servent_peer_list[target_servent][0].peer_id);
-				printf("servent %ld add servent %d in peer list !\n",target_servent,client_master[c_id][client_master_num[c_id]-1].master_id);
-				servent_peer_list[target_servent][0].peer_id = client_master[c_id][client_master_num[c_id]-1].master_id;
+				printf("servent %ld add servent %d in peer list !\n",target_servent,send_peer);
+				servent_peer_list[target_servent][0].peer_id = send_peer;
 				servent_peer_list[target_servent][0].reputation_value = reputation_value_base;
 				
 				
@@ -2291,8 +1954,8 @@ void client_func(long c_id){
 				}
 				if(peer_comparison_result == 0 && servent_peer_num[target_servent] < NUM_SERVENT_PEER  ){
 				//printf("servent %ld remove servent %d in peer list !\n",target_servent,servent_peer_list[target_servent][0].peer_id);
-				printf("servent %ld add servent %d in peer list !\n",target_servent,client_master[c_id][client_master_num[c_id]-1].master_id);
-				servent_peer_list[target_servent][servent_peer_num[target_servent]].peer_id = client_master[c_id][client_master_num[c_id]-1].master_id;
+				printf("servent %ld add servent %d in peer list !\n",target_servent,send_peer);
+				servent_peer_list[target_servent][servent_peer_num[target_servent]].peer_id = send_peer;
 				servent_peer_list[target_servent][servent_peer_num[target_servent]].reputation_value = reputation_value_base;
 				servent_peer_num[target_servent]++;
 				
@@ -2303,14 +1966,14 @@ void client_func(long c_id){
 				
 				if(servent[target_servent].fake_signal == 1 && peer_comparison_result==0){
 				
-				if(servent[client_master[c_id][client_master_num[c_id]-1].master_id].detect_signal == 0 && enumeration_signal == 1 && servent[target_servent].fake_signal == 1){
+				if(servent[send_peer].detect_signal == 0 && enumeration_signal == 1 && servent[target_servent].fake_signal == 1){
 				
-				servent[client_master[c_id][client_master_num[c_id]-1].master_id].detect_signal = 1;
+				servent[send_peer].detect_signal = 1;
 				vc++;
 				} 
 				
-				if(servent[client_master[c_id][client_master_num[c_id]-1].master_id].request_signal == 0 && enumeration_signal == 1 && servent[target_servent].fake_signal == 1){
-						servent[client_master[c_id][client_master_num[c_id]-1].master_id].request_signal = 1;
+				if(servent[send_peer].request_signal == 0 && enumeration_signal == 1 && servent[target_servent].fake_signal == 1){
+						servent[send_peer].request_signal = 1;
 						vs++;
 				}
 				
@@ -2319,7 +1982,7 @@ void client_func(long c_id){
 				}
 				
 				if(client_log[c_id][client_execute_pattern_time[c_id]].num_pattern == 2 && peer_comparison_result == 0){
-				client_log[c_id][client_execute_pattern_time[c_id]].send_peer=client_master[c_id][client_master_num[c_id]-1].master_id;
+				client_log[c_id][client_execute_pattern_time[c_id]].send_peer=send_peer;
 				
 				}
 				
@@ -2342,54 +2005,12 @@ void client_func(long c_id){
 	
 				if(strcmp(client_command_buffer[c_id][client_command_buffer_pointer[c_id]-1].command_code ,"f004" )==0 ){
 							
-							
-				if(servent[target_servent].fake_signal != 1 && servent[target_servent].sensor_signal != 1){
-				
-				for ( i = 0; i < client_master_num[c_id]; i++) {	
-				if(client_master[c_id][i].master_id == servent_peer_list[target_servent][servent_peer_num[target_servent]-1].peer_id ){
-				
-				
-				
-				printf("client %ld already have servent %d in master list !\n",c_id,servent_peer_list[target_servent][servent_peer_num[target_servent]-1].peer_id);
-				peer_comparison_result=1;
-				break;
-				}
-				
-				
-				}
-				if(servent_peer_list[target_servent][servent_peer_num[target_servent]-1].peer_id == -1){
-				printf("client %ld cant add invalid peer in peer list !\n",c_id);
-				
-				peer_comparison_result=1;
-				
-				}
-				if(peer_comparison_result == 0){
-				printf("client %ld remove servent %d in master list !\n",c_id,client_master[c_id][0].master_id);
-				printf("client %ld add servent %d in master list !\n",c_id,servent_peer_list[target_servent][servent_peer_num[target_servent]-1].peer_id);
-				client_master[c_id][0].master_id = servent_peer_list[target_servent][servent_peer_num[target_servent]-1].peer_id;
-				client_master[c_id][0].reputation_value = reputation_value_base; 
-				
-				
-				
-				
-				}
-				if(client_log[c_id][client_execute_pattern_time[c_id]].num_pattern == 2 && peer_comparison_result == 0 
-				&& (servent[target_servent].fake_signal != 1 && servent[target_servent].sensor_signal != 1)){
-				client_log[c_id][client_execute_pattern_time[c_id]].receive_peer=servent_peer_list[target_servent][servent_peer_num[target_servent]-1].peer_id;
-				
-				}
-				
-				}			
-				else if(servent[target_servent].fake_signal == 1 || servent[target_servent].sensor_signal == 1){
-				
-				char string_ip[100],string_port[100],string_id[100];
+				int select_remove=0;
+				select_remove = rand() % 10;
 				extra_information_split(client_command_buffer[c_id][client_command_buffer_pointer[c_id]-1].extra_information,string_ip,string_port,string_id);
-				int send_peer = atoi(string_id);
+				send_peer = atoi(string_id);
 				for ( i = 0; i < client_master_num[c_id]; i++) {	
 				if(client_master[c_id][i].master_id == send_peer ){
-				
-				
-				
 				printf("client %ld already have servent %d in master list !\n",c_id,send_peer);
 				peer_comparison_result=1;
 				break;
@@ -2399,7 +2020,6 @@ void client_func(long c_id){
 				}
 				if(send_peer == -1){
 				printf("client %ld cant add invalid peer in peer list !\n",c_id);
-				
 				peer_comparison_result=1;
 				
 				}
@@ -2408,27 +2028,14 @@ void client_func(long c_id){
 				printf("client %ld add servent %d in master list !\n",c_id,send_peer);
 				client_master[c_id][0].master_id = send_peer;
 				client_master[c_id][0].reputation_value = reputation_value_base; 
-				
-				
-				
-				
-				}
-				if(client_log[c_id][client_execute_pattern_time[c_id]].num_pattern == 2 && peer_comparison_result == 0 
-				&& (servent[target_servent].fake_signal == 1 || servent[target_servent].sensor_signal == 1)){
-				client_log[c_id][client_execute_pattern_time[c_id]].receive_peer=send_peer;
-				
 				}
 				
-				}
+				
+				
 				
 				client_rearrange_peer(c_id);   
 				
-				for(i=0;i<client_master_num[c_id];i++){	
-				if(client_master[c_id][i].master_id ==  target_servent && client_master[c_id][i].reputation_value < reputation_value_max ){
-				client_master[c_id][i].reputation_value++;
-				break;
-				}
-				}
+				
 				
 				
 					
@@ -2453,150 +2060,7 @@ void client_func(long c_id){
 	     			client_pattern[c_id]=99;
 			 	
 				break;
-			case 3:
-				target_servent = 0;
-				invalid_peer_num = 0;
-				
-				for(i=0;i<NUM_SERVENT_PEER;i++){
-				if(client_master[c_id][i].master_id != -1 && servent_eliminate_signal[client_master[c_id][i].master_id] == 1){
-				client_master[c_id][i].master_id = -1;
-				client_master[c_id][i].reputation_value = 0;
-				   
-				}
-				   
-				}
-				client_master_num[c_id]=0;
-				for(i=0;i<NUM_SERVENT_PEER;i++){
-				
-					if(client_master[c_id][i].master_id != -1 ){
-					client_master_num[c_id]++;
-					}
-							
-				}
-				if(client_master_num[c_id]==0){
-				printf("client %ld doesnt has peer !!! \n",c_id);
-				client_pattern[c_id]=99;
-				break;
-				}
-				for(i=0;i<NUM_SERVENT_PEER;i++){
-				if(client_master[c_id][i].master_id != -1 ){
-				if( client_master[c_id][j].trust_signal == 1){//client_master[c_id][i].reputation_value == -1 ||
-				invalid_peer_num++;
-				}  
-				}  
-				if(invalid_peer_num >= NUM_SERVENT_PEER-1){
-				break;
-				}
-				
-				}
-				if(invalid_peer_num >= NUM_SERVENT_PEER-1){
-				printf("client %ld doesnt has peer can communicate !!! \n",c_id);
-				client_pattern[c_id]=99;
-				break;
-				}
-				client_rearrange_peer(c_id);
-				client_sort_peer(c_id);	
-				
-				/*for ( i = client_master_num[c_id]-1; i >= 0 ; i--) {
-					if(client_master[c_id][i].reputation_value != 5 && client_master[c_id][i].reputation_value != -1){
-						target_servent = client_master[c_id][i].master_id;
-						
-						break;
-					}
-					
-				}*/
-				if(client_master_num[c_id] != 0){
-				
-				peer_num = client_master_num[c_id];
-				target_servent = client_master[c_id][rand() % (peer_num)].master_id  ;
-				for ( i = 0; i < client_master_num[c_id]; i++) {
-				
-				if(client_master[c_id][i].master_id == target_servent){
-				
-				j=i;
-				while(  client_master[c_id][j].trust_signal == 1 ){//client_master[c_id][j].reputation_value == -1 ||
-				
-					
-				target_servent = client_master[c_id][rand() % (peer_num)].master_id  ;
-				for ( j = 0; j < client_master_num[c_id]; j++) {
-				if(client_master[c_id][j].master_id == target_servent){
-				break;
-				}
-				}
-				
-				i = 0;    
-				}
-				
-				}
-				
-				}
-				
-				}
-				
-				/*if(servent[target_servent].sensor_signal == 1 ){
-						request_time++;
-				}
-				if(servent[target_servent].sensor_signal == 1 && client[c_id].request_signal == 0 && enumeration_signal == 1){
-						client[c_id].request_signal = 1;
-						vs++;
-				}*/
-				client_log[c_id][client_execute_pattern_time[c_id]].communication_target = target_servent;
-				
-				if(servent_latency_signal[target_servent]==1){
-				printf("servent %ld already turn to latency bot  \n",target_servent);
-				
-				client_log[c_id][client_execute_pattern_time[c_id]].communication_result = 0;
-				client_execute_pattern_time[c_id]++;
-				client_pattern[c_id]=99;
-				break;
-				}
-				if(servent_boot_signal[target_servent]==0){
-				printf("servent %ld shut down  \n",target_servent);
-				
-				client_log[c_id][client_execute_pattern_time[c_id]].communication_result = 0;
-				client_execute_pattern_time[c_id]++;
-				client_pattern[c_id]=99;
-				break;
-				}
-				if(servent_eliminate_signal[target_servent]==1){
-				printf("servent %ld eliminate \n",target_servent);
-				
-				client_log[c_id][client_execute_pattern_time[c_id]].communication_result = 0;
-				client_execute_pattern_time[c_id]++;
-				client_pattern[c_id]=99;
-				break;
-				}
-				
-				
-				
-				
-				
-				
-				b=0;
-		
-				printf("website from servent %ld:\n",target_servent);
-				while(servent_bot_website_buffer[target_servent][b].url[0]!= '\0'){
-							
-				for(i=0;i<client_bot_website_buffer_pointer[c_id];i++){	
-				website_comparison_result=strcmp(client_bot_website_buffer[c_id][i].url,servent_bot_website_buffer[target_servent][b].url);
-				if(website_comparison_result== 0){break;}
-				}
-							
-				if(website_comparison_result== 0){
-				printf("client %ld already have (%s)\n",c_id,servent_bot_website_buffer[target_servent][b].url);
-				}
-				if(website_comparison_result != 0){
-				strcpy(client_bot_website_buffer[c_id][client_bot_website_buffer_pointer[c_id]].url,servent_bot_website_buffer[target_servent][b].url);
-				client_bot_website_buffer[c_id][client_bot_website_buffer_pointer[c_id]].reputation_value = servent_bot_website_buffer[target_servent][b].reputation_value;
-				puts(client_bot_website_buffer[c_id][client_bot_website_buffer_pointer[c_id]].url);
-				client_bot_website_buffer_pointer[c_id]++;
-				}				
-				b++;			
-				}
-				client_log[c_id][client_execute_pattern_time[c_id]].communication_result = 1;
-				client_execute_pattern_time[c_id]++;
-	     			client_pattern[c_id]=99;
-				break;	
+			
 				
 				
 			
@@ -2710,7 +2174,7 @@ void client_func(long c_id){
 			}
 			
 			
-			if(delete_command_signal == 1){
+			/*if(delete_command_signal == 1){
 			printf("delete_command_signal[%ld] %d  !\n", c_id,delete_command_signal);
 			Command temp = client_command_buffer[c_id][client_command_buffer_pointer[c_id]-1];
 			client_command_buffer[c_id][client_command_buffer_pointer[c_id]-1] = client_command_buffer[c_id][i];
@@ -2719,7 +2183,7 @@ void client_func(long c_id){
 		        memset(&client_command_buffer[c_id][i],0,sizeof(Command));
 
 			client_command_buffer_pointer[c_id]--;
-			}
+			}*/
 			
 		}
 		
@@ -2743,7 +2207,8 @@ void servent_func(long s_id){
     int deadline_year,deadline_month,deadline_day,deadline_sec;
     char servent_send_message[1024];
     int peer_num=0;     
-                  
+    char string_ip[100],string_port[100],string_id[100];
+    int send_peer=0;              
   
 		if(servent_work_over[s_id] == 1){
 			return;
@@ -2846,7 +2311,7 @@ void servent_func(long s_id){
 		
 		
 		if(servent_select_pattern_signal[s_id] == 1){
-		servent_pattern[s_id] =  rand() % 4+1;
+		servent_pattern[s_id] =  rand() % 2+1;
 		//zxcc
 		}
 		if(servent_select_pattern_signal[s_id] == 0){
@@ -2855,627 +2320,17 @@ void servent_func(long s_id){
 		//***-
 		
 						
-		for ( i = 0; i < servent_peer_num[s_id]; i++) {		   
-			if (servent_peer_list[s_id][i].reputation_value < 0 && servent_latency_signal[s_id] == 0) {
-		        printf("servent %d has to request peer !!!!! \n",s_id);
-		        servent_pattern[s_id]=3;
-		        break;
-		        }
-		        if (servent_peer_list[s_id][i].reputation_value == reputation_value_max && servent_peer_list[s_id][i].already_send_TM_signal == 0 
-		        && servent_latency_signal[servent_peer_list[s_id][i].peer_id] == 0 && servent_latency_signal[s_id] == 0) {   
-
-		                servent_peer_list[s_id][i].already_send_TM_signal = 1;
-		                servent_peer_list[s_id][i].trust_signal = 1;
-				send_target = servent_peer_list[s_id][i].peer_id;
-				
-				
-				memset(servent_send_message,0,1024);
-				servent_make_command(servent_send_message,servent[s_id].id,servent[send_target].id ,0,"f005");
-				
-
-	     			puts("");
-	     			if(servent_command_buffer_pointer[send_target] > 99){
-	     			servent_command_buffer_pointer[send_target] = 0;
-	     			}
-	     			strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
-	     			servent_command_buffer_pointer[send_target]++;
-	     				
-	     			puts(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
-	     			
-	     			
-	     			servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content); 
-				
-		        
-		        }
-		}
+		
 		
 
-	   	if(servent_trust_threshold[s_id] >= 4 && servent_latency_signal[s_id]==0 && servent_already_turn_to_latency_signal[s_id] == 0){
-	   	printf("servent %d trust_threshold %d !!!!! \n",s_id,servent_trust_threshold[s_id]);
-	   	printf("servent %d turn to latency !!!!! \n",s_id);
-	   	servent_latency_signal[s_id]=1;
-	   	servent_trust_threshold[s_id]=0;
-	   	servent_already_turn_to_latency_signal[s_id]=1;
 	   	
-	   	servent_peer_num[s_id]=0;
-		for(i=0;i<NUM_SERVENT_PEER;i++){
-		   if(servent_peer_list[s_id][i].peer_id!= -1)
-		   servent_peer_num[s_id]++;
-		}
-		
-		if(servent_peer_num[s_id]!=0){
-		
-		for(i=0;i<NUM_SERVENT_PEER;i++){
-		if(servent_peer_list[s_id][i].peer_id != -1 && i>=servent_peer_num[s_id]){
-		for ( j = 0; j < servent_peer_num[s_id]; j++) {
-		if(servent_peer_list[s_id][j].peer_id == -1){
-		    	   temp = servent_peer_list[s_id][j];
-			   servent_peer_list[s_id][j] = servent_peer_list[s_id][i];
-			   servent_peer_list[s_id][i] = temp;
-			   break;
-		}
-		   
-		}
-		   
-		}
-		   
-		}
-		   
-		}
-	   	
-	   	for ( i = 0; i < servent_peer_num[s_id]; i++) {		   
-			
-				send_target = servent_peer_list[s_id][i].peer_id;
-				
-				
-				memset(servent_send_message,0,1024);
-				servent_make_command(servent_send_message,servent[s_id].id,servent[send_target].id ,0,"f006");
-				
-
-	     			puts("");
-	     			if(servent_command_buffer_pointer[send_target] > 99){
-	     			servent_command_buffer_pointer[send_target] = 0;
-	     			}
-	     			strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
-	     			servent_command_buffer_pointer[send_target]++;
-	     				
-	     			puts(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
-	     			
-	     			
-	     			servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content); 
-				
-		        
-		        
-		}
-		puts("");
-
-	        /*for ( i = 0; i < servent_send_trust_message_to_me_pointer[s_id]; i++) {	
-	        		  
-	        		send_target = servent_send_trust_message_to_me[s_id][i];
-				printf("servent %ld send f006 to servent %d",s_id,send_target);
-				
-				memset(servent_send_message,0,1024);
-				servent_make_command(servent_send_message,servent[s_id].id,servent[send_target].id ,0,"f006");
-				
-
-	     			puts("");
-	     			if(servent_command_buffer_pointer[send_target] > 99){
-	     			servent_command_buffer_pointer[send_target] = 0;
-	     			}
-	     			
-	     			strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
-	     			servent_command_buffer_pointer[send_target]++;
-	     				
-	     			puts(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
-	     			
-	     			
-	     			servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content); 
-				
-		        	puts("");
-		        
-	        }*/
-	        
-	   	}
 	   	
 	   
 	   	
 		
 		
-		if(servent_latency_signal[s_id] == 1 && servent_select_pattern_signal[s_id] == 1){
-		puts("I am latency bot. I dont communicate with other bot");
-		servent_pattern[s_id]=1;
-		}
-		
-		if(servent_resurrection_request_peer_signal[s_id] == 1){
-		
-		printf("servent %ld:I need to request 2 peer !!!!!!!\n",s_id);
-		
-		if(servent_already_execute_resurrection_signal[s_id] == 1){
-		for(i=0;i<NUM_SERVENT_PEER;i++){
-		if(servent_peer_list[s_id][i].peer_id != -1 && servent_eliminate_signal[servent_peer_list[s_id][i].peer_id] == 1){
-		servent_peer_list[s_id][i].peer_id = -1;
-		servent_peer_list[s_id][i].reputation_value = 0;
-		//servent_peer_list[s_id][i].sensor_signal = 0;
-		   
-		}
-		   
-		}
-		}
-		servent_peer_num[s_id]=0;
-		for(i=0;i<NUM_SERVENT_PEER;i++){
-		   if(servent_peer_list[s_id][i].peer_id!= -1 )
-		   servent_peer_num[s_id]++;
-		}
-		if(servent_peer_num[s_id]==0){
-		printf("servent %ld doesnt has peer !!! \n",s_id);
-		
-		servent_pattern[s_id]=99;
-		
-		}
-		if(servent_peer_num[s_id]!=0){
-		
-		for(i=0;i<NUM_SERVENT_PEER;i++){
-		if(servent_peer_list[s_id][i].peer_id != -1 && i>=servent_peer_num[s_id]){
-		for ( j = 0; j < servent_peer_num[s_id]; j++) {
-		if(servent_peer_list[s_id][j].peer_id == -1){
-		    	   temp = servent_peer_list[s_id][j];
-			   servent_peer_list[s_id][j] = servent_peer_list[s_id][i];
-			   servent_peer_list[s_id][i] = temp;
-			   break;
-		}
-		   
-		}
-		   
-		}
-		   
-		}
-		   
-		}
-		for ( i = 0; i < servent_peer_num[s_id] ; i++) {
-		   
-		printf("id:%d value:%d\n",servent_peer_list[s_id][i].peer_id, servent_peer_list[s_id][i].reputation_value);
-		}
-		
-		if(servent_peer_num[s_id]!=0){
-		int before_send_target = -1;
-		int shut_down_signal=0;
-		
-		for ( k = 0; k < 2; k++){
-		
-		//printf("k %d \n",k);
-		if(shut_down_signal == 1){
-		break;
-		}
-		
-		send_target=0;
-		invalid_peer_num = 0;
-		for(i=0;i<NUM_SERVENT_PEER;i++){
-		if(servent_peer_list[s_id][i].peer_id != -1 ){
-		if(servent_peer_list[s_id][i].reputation_value == -1 || servent_peer_list[s_id][i].trust_signal == 1 ){//|| servent_boot_signal[servent_peer_list[s_id][i].peer_id] == 0
-		invalid_peer_num++;
-		}  
-		}  
-		if(invalid_peer_num >= NUM_SERVENT_PEER-1){
-		break;
-		}
-				
-		}
-		if(invalid_peer_num >= NUM_SERVENT_PEER-1){
-		printf("servent %ld doesnt has peer can communicate !!! \n",s_id);
-		servent_pattern[s_id]=99;
-		shut_down_signal=1;
-		break;
-		}
-		servent_sort_peer(s_id);
-				
-		/*for ( i = servent_peer_num[s_id]-1; i >= 0 ; i--) {
-			if(servent_peer_list[s_id][i].reputation_value != 5 && servent_peer_list[s_id][i].reputation_value != -1 
-			&& servent_peer_list[s_id][i].peer_id != before_send_target){
-				send_target = servent_peer_list[s_id][i].peer_id;
-						
-				break;
-			}
-					
-		}*/
-		
-		if(servent_peer_num[s_id] != 0){
-		peer_num = servent_peer_num[s_id];
-		send_target = servent_peer_list[s_id][rand() % (peer_num)].peer_id;
-				
-				
-		for ( i = 0; i < servent_peer_num[s_id]; i++) {
-				
-		if(servent_peer_list[s_id][i].peer_id == send_target){
-		j=i;
-		while(servent_peer_list[s_id][j].reputation_value == -1 || servent_peer_list[s_id][j].trust_signal == 1 || servent_peer_list[s_id][j].peer_id == before_send_target 
-		){//
-			
-		send_target = servent_peer_list[s_id][rand() % (peer_num)].peer_id;
-		
-		for ( j = 0; j < servent_peer_num[s_id]; j++) {
-		if(servent_peer_list[s_id][j].peer_id == send_target){
-		break;
-		}
-		}
-				
-		i = 0;    
-		
-		}
-				
-		}
-				
-		}
-				
-		}
 		
 		
-		before_send_target = send_target;
-		servent_peer_num[send_target]=0;
-		for(i=0;i<NUM_SERVENT_PEER;i++){
-			if(servent_peer_list[send_target][i].peer_id!= -1 )
-			servent_peer_num[send_target]++;
-		}
-		
-				
-		if(servent_boot_signal[send_target]==0){
-		printf("servent %ld shut down !!! \n",send_target);
-		printf("servent %ld reputation_value--!!! \n",send_target);
-		for ( i = 0; i < servent_peer_num[s_id]; i++) {
-			if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-				servent_peer_list[s_id][i].reputation_value--;
-			}
-		}
-				
-		servent_pattern[s_id]=99;
-		break;
-		}
-		if(servent_eliminate_signal[send_target]==1){
-		printf("servent %ld eliminate \n",send_target);
-		
-		servent_pattern[s_id]=99;
-		break;
-		}
-		
-		
-		if(servent[send_target].sensor_signal == 1 ){
-			request_time[send_target]++;
-		}
-		if(servent[send_target].sensor_signal == 1 && servent[s_id].request_signal == 0 && enumeration_signal == 1){
-			servent[s_id].request_signal = 1;
-			vs++;
-		}
-		if(servent_peer_num[send_target]==0){
-			printf("send_target:servent %ld doesnt has peer !!! \n",send_target);
-			
-			
-		if(servent_peer_num[s_id] == 1){	
-		shut_down_signal=1;
-		printf("shut_down_signal %d !!! \n",shut_down_signal);
-		}
-		servent_pattern[s_id]=99;
-		break;
-		}
-		if(servent_latency_signal[send_target]==1){
-		printf("servent %ld already turn to latency bot !!! \n",send_target);
-		printf("servent %ld reputation_value--!!! \n",send_target);
-		for ( i = 0; i < servent_peer_num[s_id]; i++) {
-			if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-				servent_peer_list[s_id][i].reputation_value--;
-			}
-		}
-				
-		servent_pattern[s_id]=99;
-		break;
-		}
-		
-		
-		memset(servent_send_message,0,1024);
-		servent_make_command(servent_send_message,servent[s_id].id,servent[send_target].id ,0,"f003");
-		printf("servent %ld , send_data: %s , target servent:%d", s_id,servent_send_message,send_target);
-
-	     	puts("");
-	     			
-	     	if(servent_command_buffer_pointer[send_target] <= 99){
-	     	strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
-	     	servent_command_buffer_pointer[send_target]++;
-	     	puts(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
-	     	}
-	     	else if(servent_command_buffer_pointer[send_target] > 99){
-	     	servent_command_buffer_pointer[send_target] = 0;
-	     	strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
-	     	servent_command_buffer_pointer[send_target]++;
-	     	puts(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
-	     			
-	     	}
-	     	
-	     	if(servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content) == 0 
-	     	//&& servent[send_target].sensor_signal != 1 && servent[send_target].fake_signal != 1
-
-	     	){//&& enumeration_signal == 1 zxxx
-	     	printf("servent %ld reputation_value--!!! \n",send_target);
-		for ( i = 0; i < servent_peer_num[s_id]; i++) {
-			if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-				servent_peer_list[s_id][i].reputation_value--;
-			}
-		}
-				
-		servent_pattern[s_id]=99;
-		break;
-	     	}
-	     					
-	     	peer_comparison_result=0;		
-	     			
-	     	if(servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content) == 1){
-	
-		if(strcmp(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].command_code ,"f003" )==0 ){
-				
-		memset(servent_send_message,0,1024);
-		servent_make_command(servent_send_message,servent[send_target].id,servent[s_id].id ,0,"f004" );
-				
-		
-		//ccccc 
-		
-			
-		for ( i = 0; i < servent_peer_num[send_target]; i++) {	
-		if(servent_peer_list[send_target][i].peer_id == servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id){
-		
-		
-		printf("servent %ld already have servent %d in peer list !\n",send_target,servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id);
-		peer_comparison_result=1;
-		break;
-		}
-				
-				
-		}
-		if(send_target == servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id){
-		printf("servent %ld cant add itself in peer list !\n",send_target);
-		peer_comparison_result=1;
-				
-		}
-		if(servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id == -1 ){
-		printf("servent %ld cant add invalid peer in peer list !\n",send_target);
-		peer_comparison_result=1;
-				
-		}
-				
-		if(peer_comparison_result == 0 && servent_peer_num[send_target]==NUM_SERVENT_PEER){
-		printf("servent %ld remove servent %d in peer list !\n",send_target,servent_peer_list[send_target][0].peer_id);
-		printf("servent %ld add servent %d in peer list !\n",send_target,servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id);
-		servent_peer_list[send_target][0].peer_id = servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id;
-		servent_peer_list[send_target][0].reputation_value = reputation_value_base;
-				
-		
-				
-		
-				
-		}
-		if(peer_comparison_result == 0 && servent_peer_num[send_target] < NUM_SERVENT_PEER  ){
-		//printf("servent %ld remove servent %d in peer list !\n",send_target,servent_peer_list[send_target][0].peer_id);
-		printf("servent %ld add servent %d in peer list !\n",send_target,servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id);
-		servent_peer_list[send_target][servent_peer_num[send_target]].peer_id = servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id;
-		servent_peer_list[send_target][servent_peer_num[send_target]].reputation_value = reputation_value_base;
-		servent_peer_num[send_target]++;
-		
-		}
-		//s5s5
-		if(servent[send_target].fake_signal == 1 && peer_comparison_result == 0){
-				
-		if(servent[servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id].detect_signal == 0 && enumeration_signal == 1 && servent[send_target].fake_signal == 1){
-				
-		servent[servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id].detect_signal = 1;
-		vc++;
-		} 
-				
-		if(servent[servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id].request_signal == 0 && enumeration_signal == 1 && servent[send_target].fake_signal == 1){
-		
-		servent[servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id].request_signal = 1;
-		vs++;
-		}
-				
-				
-				
-		}		
-				
-				
-				
-		if(servent_command_buffer_pointer[s_id] <= 99){
-		strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content, servent_send_message);
-	     	servent_command_buffer_pointer[s_id]++;
-		puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
-		}
-		else if(servent_command_buffer_pointer[s_id] > 99){
-		servent_command_buffer_pointer[s_id]=0;
-		strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content, servent_send_message);
-	     	servent_command_buffer_pointer[s_id]++;
-		puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
-		}			     	
-				
-					     			
-		}
-				
-	     	}
-		peer_comparison_result=0;		
-		if(servent_command_analysis(s_id,servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content) == 1){
-	
-		if(strcmp(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].command_code ,"f004" )==0 ){
-							
-		if(servent[send_target].fake_signal != 1 && servent[send_target].sensor_signal != 1){
-		for ( i = 0; i < servent_peer_num[s_id]; i++) {	
-
-		if(servent_peer_list[s_id][i].peer_id == servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id){
-		
-		
-		
-		printf("servent %ld already have servent %d in peer list !\n",s_id,servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id);
-		peer_comparison_result=1;
-		break;
-		}
-				
-				
-		}
-		if(s_id == servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id){
-		printf("servent %ld cant add itself in peer list !\n",s_id);
-		peer_comparison_result=1;
-				
-		}
-		
-		if(servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id == -1){
-		printf("servent %ld cant add invalid peer in peer list !\n",s_id);
-		peer_comparison_result=1;
-				
-		}
-		if(peer_comparison_result == 0 && servent_peer_num[s_id]==NUM_SERVENT_PEER){
-		printf("servent %ld remove servent %d in peer list !\n",s_id,servent_peer_list[s_id][0].peer_id);
-		printf("servent %ld add servent %d in peer list !\n",s_id,servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id);
-		servent_peer_list[s_id][0].peer_id = servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id;
-		servent_peer_list[s_id][0].reputation_value = reputation_value_base;
-					
-		
-				
-		}
-		if(peer_comparison_result == 0 && servent_peer_num[s_id] < NUM_SERVENT_PEER  ){
-		//printf("servent %ld remove servent %d in peer list !\n",s_id,servent_peer_list[s_id][0].peer_id);
-		printf("servent %ld add servent %d in peer list !\n",s_id,servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id);
-		servent_peer_list[s_id][servent_peer_num[s_id]].peer_id = servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id;
-		servent_peer_list[s_id][servent_peer_num[s_id]].reputation_value = reputation_value_base;
-		
-		servent_peer_num[s_id]++;
-				
-		
-		}
-		}		
-		else if(servent[send_target].fake_signal == 1 || servent[send_target].sensor_signal == 1){
-		char string_ip[100],string_port[100],string_id[100];
-		extra_information_split(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].extra_information,string_ip,string_port,string_id);
-		int send_peer = atoi(string_id);
-		
-		for ( i = 0; i < servent_peer_num[s_id]; i++) {	
-		if(servent_peer_list[s_id][i].peer_id == send_peer){
-				
-				
-				
-				
-		printf("servent %ld already have servent %d in peer list !\n",s_id,send_peer);
-		peer_comparison_result=1;
-		break;
-		}
-				
-				
-		}
-		if(s_id == send_peer){
-		printf("servent %ld cant add itself in peer list !\n",s_id);
-		peer_comparison_result=1;
-				
-		}
-		if(send_peer == -1){
-		printf("servent %ld cant add invalid peer in peer list !\n",s_id);
-		peer_comparison_result=1;
-				
-		}
-		if(peer_comparison_result == 0 && servent_peer_num[s_id]==NUM_SERVENT_PEER){
-		printf("servent %ld remove servent %d in peer list !\n",s_id,servent_peer_list[s_id][0].peer_id);
-		printf("servent %ld add servent %d in peer list !\n",s_id,send_peer);
-		servent_peer_list[s_id][0].peer_id = send_peer;
-		servent_peer_list[s_id][0].reputation_value = reputation_value_base;
-
-				
-				
-				
-		}
-		if(peer_comparison_result == 0 && servent_peer_num[s_id] < NUM_SERVENT_PEER  ){
-		//printf("servent %ld remove servent %d in peer list !\n",s_id,servent_peer_list[s_id][0].peer_id);
-		printf("servent %ld add servent %d in peer list !\n",s_id,send_peer);
-		servent_peer_list[s_id][servent_peer_num[s_id]].peer_id = send_peer;
-		servent_peer_list[s_id][servent_peer_num[s_id]].reputation_value = reputation_value_base;
-
-		servent_peer_num[s_id]++;
-				
-				
-								
-				
-		}
-		
-		}
-				
-					
-				  			
-				
-		servent_rearrange_peer(s_id);   
-				
-		for(i=0;i<servent_peer_num[s_id];i++){	
-		if(servent_peer_list[s_id][i].peer_id ==  send_target && servent_peer_list[s_id][i].reputation_value < reputation_value_max ){
-		servent_peer_list[s_id][i].reputation_value++;
-		break;
-		}
-		}
-				
-				
-					
-		servent_sort_peer(s_id);			
-				
-		for ( i = 0; i < servent_peer_num[s_id]; i++) {
-		if(servent_peer_list[s_id][i].peer_id!= -1 ){
-		printf("id:%d value:%d\n",servent_peer_list[s_id][i].peer_id, servent_peer_list[s_id][i].reputation_value);
-		}
-				
-		}	     	
-				
-					     			
-		}
-				
-	     	}
-		
-		
-			
-		}
-			if(servent_already_execute_resurrection_signal[s_id] == 1){
-			for(i=0;i<NUM_SERVENT_PEER;i++){
-			if(servent_peer_list[s_id][i].peer_id != -1 && servent_eliminate_signal[servent_peer_list[s_id][i].peer_id] == 1){
-			servent_peer_list[s_id][i].peer_id = -1;
-			servent_peer_list[s_id][i].reputation_value = 0;
-			//servent_peer_list[s_id][i].sensor_signal = 0;
-			   
-			}
-			   
-			}
-			}
-			servent_rearrange_peer(s_id); 
-			
-			servent_peer_num[s_id]=0;
-			for(i=0;i<NUM_SERVENT_PEER;i++){
-			   if(servent_peer_list[s_id][i].peer_id!= -1 )
-			   servent_peer_num[s_id]++;
-			}
-			
-			for(i=0;i<servent_peer_num[s_id];i++){
-			if(servent_peer_list[s_id][i].reputation_value > 2 && servent_peer_list[s_id][i].peer_id !=-1 ){
-
-			       
-			       servent_peer_list[s_id][i].reputation_value = 2;
-			       
-			}
-			else if( servent_latency_signal[servent_peer_list[s_id][i].peer_id] == 1 && servent_peer_list[s_id][i].peer_id !=-1 ){
-
-			       
-			       servent_peer_list[s_id][i].reputation_value = 2;
-			       
-			}
-			else if(servent_peer_list[s_id][i].reputation_value <= 2 && servent_peer_list[s_id][i].peer_id !=-1 ){
-
-			       
-			       servent_peer_list[s_id][i].reputation_value = 0;
-			       
-			}
-			   
-			   
-			}
-		
-		}
-		
-		servent_resurrection_request_peer_signal[s_id] = 0;
-		
-		
-		}
 		
 		if(servent_pattern[s_id]!=99){
 		servent_log[s_id][servent_execute_pattern_time[s_id]].num_pattern = servent_pattern[s_id];
@@ -3490,123 +2345,8 @@ void servent_func(long s_id){
 				
 				servent_pattern[s_id]=99;
 				break;
-			case 1://botmaster_command
-				//file_num=rand()  % 3;
-				file_num=0;//***-
-				switch(file_num){
-				case 0:
-					a=0;
-					b=0;
-					
-					printf("servent %ld receive command%d from relay station:\n",s_id,a+1);
-					while(file_data[a][b][0]!= '\0'){
-					
-					for(i=0;i<servent_command_buffer_pointer[s_id];i++){	
-					
-						command_comparison_result=strcmp(servent_command_buffer[s_id][i].content,file_data[a][b]);
-						if(command_comparison_result== 0){
-						puts(servent_command_buffer[s_id][i].content);
-						break;
-						}
-					}
-					
-					if(command_comparison_result== 0){
-					printf("servent %ld already have (%s)\n",s_id,file_data[a][b]);
-					
-					}
-					if(command_comparison_result != 0){
-					if(servent_command_buffer_pointer[s_id] > 99){
-					servent_command_buffer_pointer[s_id]=0;
-					}
-					strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content,file_data[a][b]);
-					puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content);
-					
-					servent_command_buffer_pointer[s_id]++;
-					servent_command_analysis(s_id,servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
-					}
-					
-					
-					b++;
-					
-					}
-					
-					
-					
-					break;
-				case 1:
-					a=1;
-					b=0;
-					
-					printf("servent %ld receive command%d from relay station:\n",s_id,a+1);
-					while(file_data[a][b][0]!= '\0'){
-					
-					for(i=0;i<servent_command_buffer_pointer[s_id];i++){	
-					command_comparison_result=strcmp(servent_command_buffer[s_id][i].content,file_data[a][b]);
-					if(command_comparison_result== 0){break;}
-					}
-					
-					if(command_comparison_result== 0){
-					printf("servent %ld already have (%s)\n",s_id,file_data[a][b]);
-					
-					}
-					if(command_comparison_result != 0){
-					if(servent_command_buffer_pointer[s_id] > 99){
-					servent_command_buffer_pointer[s_id]=0;
-					}
-					strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content,file_data[a][b]);
-					puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content);
-					
-					servent_command_buffer_pointer[s_id]++;
-					servent_command_analysis(s_id,servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
-					}
-					
-					
-					b++;
-					
-					}
-					
-					
-					
-					break;
-				case 2:
-					a=2;
-					b=0;
-					printf("servent %ld receive command%d from relay station:\n",s_id,a+1);
-					while(file_data[a][b][0]!= '\0'){
-					
-					for(i=0;i<servent_command_buffer_pointer[s_id];i++){	
-					command_comparison_result=strcmp(servent_command_buffer[s_id][i].content,file_data[a][b]);
-					if(command_comparison_result== 0){break;}
-					}
-					
-					if(command_comparison_result== 0){
-					printf("servent %ld already have (%s)\n",s_id,file_data[a][b]);
-					
-					}
-					if(command_comparison_result != 0){
-					if(servent_command_buffer_pointer[s_id] > 99){
-					servent_command_buffer_pointer[s_id]=0;
-					}
-					strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content,file_data[a][b]);
-					puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content);
-					servent_command_buffer_pointer[s_id]++;
-					servent_command_analysis(s_id,servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
-					}
-					
-					
-					b++;
-					
-					}
-					
-					
-					break;
-				}
-				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 1;
-				servent_execute_pattern_time[s_id]++;
-				servent_pattern[s_id]=99;
-				
-				break;
-			case 2:
+			
+			case 1:
 				
 				send_target=0;
 				invalid_peer_num = 0;
@@ -3699,12 +2439,6 @@ void servent_func(long s_id){
 				
 				if(servent_boot_signal[send_target]==0){
 				printf("servent %ld shut down !!! \n",send_target);
-				printf("servent %ld reputation_value--!!! \n",send_target);
-				for ( i = 0; i < servent_peer_num[s_id]; i++) {
-					if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-						servent_peer_list[s_id][i].reputation_value--;
-					}
-				}
 				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 0;
 				servent_execute_pattern_time[s_id]++;
 				servent_pattern[s_id]=99;
@@ -3720,20 +2454,7 @@ void servent_func(long s_id){
 						vs++;
 				}
 				
-				if(servent_latency_signal[send_target]==1){
-				printf("servent %ld already turn to latency bot !!! \n",send_target);
-				printf("servent %ld reputation_value--!!! \n",send_target);
-				for ( i = 0; i < servent_peer_num[s_id]; i++) {
-					if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-						servent_peer_list[s_id][i].reputation_value--;
-					}
-				}
-				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 0;
-				servent_execute_pattern_time[s_id]++;
-				servent_pattern[s_id]=99;
 				
-				break;
-				}
 				
 				//asdf
 				
@@ -3764,23 +2485,7 @@ void servent_func(long s_id){
 	     			
 	     			}
 	     			
-	     			if(servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content) == 0 
-	     			//&& servent[send_target].sensor_signal != 1 && servent[send_target].fake_signal != 1
-
-	     			){
-	     			//&& enumeration_signal == 1 zxxx
-	     			printf("servent %ld reputation_value--!!! \n",send_target);
-				for ( i = 0; i < servent_peer_num[s_id]; i++) {
-					if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-						servent_peer_list[s_id][i].reputation_value--;
-					}
-				}
-				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 0;
-				servent_execute_pattern_time[s_id]++;
-				servent_pattern[s_id]=99;
-				
-				break;
-	     			}
+	     			
 	     			
 	     			
 	     			if(servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content) == 1){
@@ -3850,12 +2555,7 @@ void servent_func(long s_id){
 				
 				servent_rearrange_peer(s_id);   
 				
-				for(i=0;i<servent_peer_num[s_id];i++){	
-				if(servent_peer_list[s_id][i].peer_id ==  send_target && servent_peer_list[s_id][i].reputation_value < reputation_value_max ){
-				servent_peer_list[s_id][i].reputation_value++;
-				break;
-				}
-				}
+				
 				
 				
 					
@@ -3881,7 +2581,7 @@ void servent_func(long s_id){
 	     			servent_pattern[s_id]=99;
 			 	
 				break;
-			case 3:
+			case 2:
 				
 				send_target=0;
 				invalid_peer_num = 0;
@@ -3977,12 +2677,6 @@ void servent_func(long s_id){
 				
 				if(servent_boot_signal[send_target]==0){
 				printf("servent %ld shut down !!! \n",send_target);
-				printf("servent %ld reputation_value--!!! \n",send_target);
-				for ( i = 0; i < servent_peer_num[s_id]; i++) {
-					if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-						servent_peer_list[s_id][i].reputation_value--;
-					}
-				}
 				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 0;
 				servent_execute_pattern_time[s_id]++;
 				servent_pattern[s_id]=99;
@@ -4005,20 +2699,7 @@ void servent_func(long s_id){
 				break;
 				}
 				
-				if(servent_latency_signal[send_target]==1){
-				printf("servent %ld already turn to latency bot !!! \n",send_target);
-				printf("servent %ld reputation_value--!!! \n",send_target);
-				for ( i = 0; i < servent_peer_num[s_id]; i++) {
-					if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-						servent_peer_list[s_id][i].reputation_value--;
-					}
-				}
-				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 0;
-				servent_execute_pattern_time[s_id]++;
-				servent_pattern[s_id] = 99;
 				
-				break;
-				}
 				
 				
 				
@@ -4043,23 +2724,7 @@ void servent_func(long s_id){
 	     			
 	     			}
 	     			
-	     			if(servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content) == 0 
-	     			//&& servent[send_target].sensor_signal != 1 && servent[send_target].fake_signal != 1
-
-	     			){
-	     			//&& enumeration_signal == 1 zxxx
-	     			printf("servent %ld reputation_value--!!! \n",send_target);
-				for ( i = 0; i < servent_peer_num[s_id]; i++) {
-					if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-						servent_peer_list[s_id][i].reputation_value--;
-					}
-				}
-				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 0;
-				servent_execute_pattern_time[s_id]++;
-				servent_pattern[s_id]=99;
-				
-				break;
-	     			}
+	     			
 	     			
 	     			
 	     			peer_comparison_result=0;
@@ -4067,6 +2732,8 @@ void servent_func(long s_id){
 	
 				if(strcmp(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].command_code ,"f003" )==0 ){
 				
+				extra_information_split(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].extra_information,string_ip,string_port,string_id);
+				send_peer = atoi(string_id);
 				memset(servent_send_message,0,1024);
 				servent_make_command(servent_send_message,servent[send_target].id,servent[s_id].id ,0,"f004" );
 				
@@ -4076,22 +2743,22 @@ void servent_func(long s_id){
 				
 				
 				for ( i = 0; i < servent_peer_num[send_target]; i++) {	
-				if(servent_peer_list[send_target][i].peer_id == servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id){
+				if(servent_peer_list[send_target][i].peer_id == send_peer){
 				
 				
-				printf("servent %ld already have servent %d in peer list !\n",send_target,servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id);
+				printf("servent %ld already have servent %d in peer list !\n",send_target,send_peer);
 				peer_comparison_result=1;
 				break;
 				}
 				
 				
 				}
-				if(send_target == servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id){
+				if(send_target == send_peer){
 				printf("servent %ld cant add itself in peer list !\n",send_target);
 				peer_comparison_result=1;
 				
 				}
-				if(servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id == -1 ){
+				if(send_peer == -1 ){
 				printf("servent %ld cant add invalid peer in peer list !\n",send_target);
 				peer_comparison_result=1;
 				
@@ -4099,34 +2766,39 @@ void servent_func(long s_id){
 				
 				if(peer_comparison_result == 0 && servent_peer_num[send_target]==NUM_SERVENT_PEER){
 				printf("servent %ld remove servent %d in peer list !\n",send_target,servent_peer_list[send_target][0].peer_id);
-				printf("servent %ld add servent %d in peer list !\n",send_target,servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id);
-				servent_peer_list[send_target][0].peer_id = servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id;
+				printf("servent %ld add servent %d in peer list !\n",send_target,send_peer);
+				servent_peer_list[send_target][0].peer_id = send_peer;
 				servent_peer_list[send_target][0].reputation_value = reputation_value_base;
+
 				
 				
-					
+				
+				
+				
 				}
 				if(peer_comparison_result == 0 && servent_peer_num[send_target] < NUM_SERVENT_PEER  ){
 				//printf("servent %ld remove servent %d in peer list !\n",send_target,servent_peer_list[send_target][0].peer_id);
-				printf("servent %ld add servent %d in peer list !\n",send_target,servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id);
-				servent_peer_list[send_target][servent_peer_num[send_target]].peer_id = servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id;
+				printf("servent %ld add servent %d in peer list !\n",send_target,send_peer);
+				servent_peer_list[send_target][servent_peer_num[send_target]].peer_id = send_peer;
 				servent_peer_list[send_target][servent_peer_num[send_target]].reputation_value = reputation_value_base;
-				servent_peer_num[send_target]++;
 				
-
+				servent_peer_num[send_target]++;
+						
+				
+				
 				}
 				//s5s5
 				if(servent[send_target].fake_signal == 1 && peer_comparison_result == 0){
 				
-				if(servent[servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id].detect_signal == 0 && enumeration_signal == 1 && servent[send_target].fake_signal == 1){
+				if(servent[send_peer].detect_signal == 0 && enumeration_signal == 1 && servent[send_target].fake_signal == 1){
 				
-				servent[servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id].detect_signal = 1;
+				servent[send_peer].detect_signal = 1;
 				vc++;
 				} 
 				
-				if(servent[servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id].request_signal == 0 && enumeration_signal == 1 && servent[send_target].fake_signal == 1){
+				if(servent[send_peer].request_signal == 0 && enumeration_signal == 1 && servent[send_target].fake_signal == 1){
 		
-				servent[servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id].request_signal = 1;
+				servent[send_peer].request_signal = 1;
 				vs++;
 				}
 				
@@ -4134,7 +2806,7 @@ void servent_func(long s_id){
 				
 				}
 				if(servent_log[s_id][servent_execute_pattern_time[s_id]].num_pattern == 3 && peer_comparison_result == 0){
-				servent_log[s_id][servent_execute_pattern_time[s_id]].send_peer=servent_peer_list[s_id][servent_peer_num[s_id]-1].peer_id;
+				servent_log[s_id][servent_execute_pattern_time[s_id]].send_peer=send_peer;
 				
 				}
 				//------
@@ -4159,130 +2831,47 @@ void servent_func(long s_id){
 	
 				if(strcmp(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].command_code ,"f004" )==0 ){
 							
-				//ccccc
-				if(servent[send_target].fake_signal != 1 && servent[send_target].sensor_signal != 1){
-				for ( i = 0; i < servent_peer_num[s_id]; i++) {	
-				if(servent_peer_list[s_id][i].peer_id == servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id){
-				
-				
-				
-				
-				printf("servent %ld already have servent %d in peer list !\n",s_id,servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id);
-				peer_comparison_result=1;
-				break;
-				}
-				
-				
-				}
-				if(s_id == servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id){
-				printf("servent %ld cant add itself in peer list !\n",s_id);
-				peer_comparison_result=1;
-				
-				}
-				if(servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id == -1){
-				printf("servent %ld cant add invalid peer in peer list !\n",s_id);
-				peer_comparison_result=1;
-				
-				}
-				if(peer_comparison_result == 0 && servent_peer_num[s_id]==NUM_SERVENT_PEER){
-				printf("servent %ld remove servent %d in peer list !\n",s_id,servent_peer_list[s_id][0].peer_id);
-				printf("servent %ld add servent %d in peer list !\n",s_id,servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id);
-				servent_peer_list[s_id][0].peer_id = servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id;
-				servent_peer_list[s_id][0].reputation_value = reputation_value_base;
-
-				
-				
-				
-				}
-				if(peer_comparison_result == 0 && servent_peer_num[s_id] < NUM_SERVENT_PEER  ){
-				//printf("servent %ld remove servent %d in peer list !\n",s_id,servent_peer_list[s_id][0].peer_id);
-				printf("servent %ld add servent %d in peer list !\n",s_id,servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id);
-				servent_peer_list[s_id][servent_peer_num[s_id]].peer_id = servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id;
-				servent_peer_list[s_id][servent_peer_num[s_id]].reputation_value = reputation_value_base;
-
-				servent_peer_num[s_id]++;
-				
-				
-								
-				
-				}
-				if(servent_log[s_id][servent_execute_pattern_time[s_id]].num_pattern == 3 && peer_comparison_result == 0 
-				&& (servent[send_target].fake_signal != 1 && servent[send_target].sensor_signal != 1)){
-				servent_log[s_id][servent_execute_pattern_time[s_id]].receive_peer=servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id;
-				
-				}
-				
-				}
-				
-				else if(servent[send_target].fake_signal == 1 || servent[send_target].sensor_signal == 1){
-				char string_ip[100],string_port[100],string_id[100];
+				int select_remove=0;
+				select_remove = rand() % 10;
 				extra_information_split(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].extra_information,string_ip,string_port,string_id);
-				int send_peer = atoi(string_id);
-				
+				send_peer = atoi(string_id);
 				
 				for ( i = 0; i < servent_peer_num[s_id]; i++) {	
-				if(servent_peer_list[s_id][i].peer_id == send_peer){
-				
-				
-				
-				
-				printf("servent %ld already have servent %d in peer list !\n",s_id,send_peer);
-				peer_comparison_result=1;
-				break;
-				}
-				
-				
+					if(servent_peer_list[s_id][i].peer_id == send_peer){
+					printf("servent %ld already have servent %d in peer list !\n",s_id,send_peer);
+					peer_comparison_result=1;
+					break;
+					}
+
 				}
 				if(s_id == send_peer){
 				printf("servent %ld cant add itself in peer list !\n",s_id);
 				peer_comparison_result=1;
-				
 				}
-				if(send_peer == -1){
+				if(send_peer == -1 ){
 				printf("servent %ld cant add invalid peer in peer list !\n",s_id);
 				peer_comparison_result=1;
-				
 				}
+				
 				if(peer_comparison_result == 0 && servent_peer_num[s_id]==NUM_SERVENT_PEER){
 				printf("servent %ld remove servent %d in peer list !\n",s_id,servent_peer_list[s_id][0].peer_id);
 				printf("servent %ld add servent %d in peer list !\n",s_id,send_peer);
 				servent_peer_list[s_id][0].peer_id = send_peer;
 				servent_peer_list[s_id][0].reputation_value = reputation_value_base;
-
-				
-				
-				
 				}
 				if(peer_comparison_result == 0 && servent_peer_num[s_id] < NUM_SERVENT_PEER  ){
 				//printf("servent %ld remove servent %d in peer list !\n",s_id,servent_peer_list[s_id][0].peer_id);
 				printf("servent %ld add servent %d in peer list !\n",s_id,send_peer);
 				servent_peer_list[s_id][servent_peer_num[s_id]].peer_id = send_peer;
 				servent_peer_list[s_id][servent_peer_num[s_id]].reputation_value = reputation_value_base;
-
 				servent_peer_num[s_id]++;
-				
-				
-								
-				
-				}
-				if(servent_log[s_id][servent_execute_pattern_time[s_id]].num_pattern == 3 && peer_comparison_result == 0 
-				&& (servent[send_target].fake_signal == 1 || servent[send_target].sensor_signal == 1) ){
-				
-				servent_log[s_id][servent_execute_pattern_time[s_id]].receive_peer=send_peer;
-				/*printf("servent %ld servent_log[s_id][servent_execute_pattern_time[s_id]].receive_peer %d !\n",s_id,servent_log[s_id][servent_execute_pattern_time[s_id]].receive_peer);*/
-				}
 				}
 					
 				  			
 				
 				servent_rearrange_peer(s_id);   
 				
-				for(i=0;i<servent_peer_num[s_id];i++){	
-				if(servent_peer_list[s_id][i].peer_id ==  send_target && servent_peer_list[s_id][i].reputation_value < reputation_value_max ){
-				servent_peer_list[s_id][i].reputation_value++;
-				break;
-				}
-				}
+				
 				
 				
 					
@@ -4305,156 +2894,7 @@ void servent_func(long s_id){
 	     			servent_pattern[s_id]=99;
 				break;	
 				
-			case 4:	
-			        send_target=0;
-				invalid_peer_num = 0;
-				if(servent_already_execute_resurrection_signal[s_id] == 1){
-				for(i=0;i<NUM_SERVENT_PEER;i++){
-				if(servent_peer_list[s_id][i].peer_id != -1 && servent_eliminate_signal[servent_peer_list[s_id][i].peer_id] == 1){
-				servent_peer_list[s_id][i].peer_id = -1;
-				servent_peer_list[s_id][i].reputation_value = 0;
-				//servent_peer_list[s_id][i].sensor_signal = 0;
 				
-				}
-				   
-				}
-				}
-				servent_peer_num[s_id]=0;
-				for(i=0;i<NUM_SERVENT_PEER;i++){
-				
-				if(servent_peer_list[s_id][i].peer_id!= -1)
-				servent_peer_num[s_id]++;
-					
-				} 
-				
-				if(servent_peer_num[s_id]==0){
-				printf("servent %ld doesnt has peer !!! \n",s_id);
-				servent_pattern[s_id]=99;
-				break;
-				}
-				
-				for(i=0;i<NUM_SERVENT_PEER;i++){
-				if(servent_peer_list[s_id][i].peer_id != -1 ){
-				if(servent_peer_list[s_id][i].reputation_value == -1 || servent_peer_list[s_id][i].trust_signal == 1 ){//|| servent_boot_signal[servent_peer_list[s_id][i].peer_id] == 0
-				invalid_peer_num++;
-				}  
-				}  
-				if(invalid_peer_num >= NUM_SERVENT_PEER){
-				break;
-				}
-				
-				}
-				if(invalid_peer_num >= NUM_SERVENT_PEER){
-				printf("servent %ld doesnt has peer can communicate !!! \n",s_id);
-				servent_pattern[s_id]=99;
-				break;
-				}
-				servent_rearrange_peer(s_id);
-				servent_sort_peer(s_id);
-				
-				/*for ( i = servent_peer_num[s_id]-1; i >= 0 ; i--) {
-					if(servent_peer_list[s_id][i].reputation_value != 5 && servent_peer_list[s_id][i].reputation_value != -1 ){
-						send_target = servent_peer_list[s_id][i].peer_id;
-								
-						break;
-					}
-							
-				}*/
-				if(servent_peer_num[s_id] != 0){
-				peer_num = servent_peer_num[s_id];
-				send_target = servent_peer_list[s_id][rand() % (peer_num)].peer_id;
-				
-				for ( i = 0; i < servent_peer_num[s_id]; i++) {
-				
-				if(servent_peer_list[s_id][i].peer_id == send_target){
-				j=i;
-				while(servent_peer_list[s_id][j].reputation_value == -1 || servent_peer_list[s_id][j].trust_signal == 1 ){//|| servent_boot_signal[servent_peer_list[s_id][j].peer_id] == 0
-				
-					
-				send_target = servent_peer_list[s_id][rand() % (peer_num)].peer_id;
-				
-				for ( j = 0; j < servent_peer_num[s_id]; j++) {
-				if(servent_peer_list[s_id][j].peer_id == send_target){
-				break;
-				}
-				}
-				
-				i = 0;    
-				
-				}
-				
-				}
-				
-				}
-				
-				}
-				/*
-				if(servent[send_target].sensor_signal == 1 ){
-						request_time++;
-				}
-				if(servent[send_target].sensor_signal == 1 && servent[s_id].request_signal == 0 && enumeration_signal == 1){
-						servent[s_id].request_signal = 1;
-						vs++;
-				}*/
-				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_target = send_target;
-				if(servent_latency_signal[send_target]==1){
-				printf("servent %ld already turn to latency bot !!! \n",send_target);
-				
-				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 0;
-				servent_execute_pattern_time[s_id]++;
-				servent_pattern[s_id]=99;
-				break;
-				}
-				
-				if(servent_boot_signal[send_target]==0){
-				printf("servent %ld shut down !!! \n",send_target);
-				
-				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 0;
-				servent_execute_pattern_time[s_id]++;
-				servent_pattern[s_id]=99;
-				break;
-				}
-				/*if(servent[send_target].sensor_signal == 1){
-				printf("servent %ld is sensor bot !!! \n",send_target);
-				
-				
-				servent_pattern[s_id]=99;
-				break;
-				}
-				if(servent[send_target].fake_signal == 1){
-				printf("servent %ld is crawler bot !!! \n",send_target);
-				
-				servent_pattern[s_id]=99;
-				break;
-				}*/
-				
-				
-				b=0;
-				
-				printf("website from servent %ld:\n",send_target);
-				while(servent_bot_website_buffer[send_target][b].url[0]!= '\0'){
-							
-				for(i=0;i<servent_bot_website_buffer_pointer[s_id];i++){	
-				website_comparison_result=strcmp(servent_bot_website_buffer[s_id][i].url,servent_bot_website_buffer[send_target][b].url);
-				if(website_comparison_result== 0){break;}
-				}
-							
-				if(website_comparison_result== 0){
-				printf("servent %ld already have (%s)\n",s_id,servent_bot_website_buffer[send_target][b].url);
-				}
-				if(website_comparison_result != 0){
-				strcpy(servent_bot_website_buffer[s_id][servent_bot_website_buffer_pointer[s_id]].url,servent_bot_website_buffer[send_target][b].url);
-				servent_bot_website_buffer[s_id][servent_bot_website_buffer_pointer[s_id]].reputation_value = servent_bot_website_buffer[send_target][b].reputation_value ;
-				
-				puts(servent_bot_website_buffer[s_id][servent_bot_website_buffer_pointer[s_id]].url);
-				servent_bot_website_buffer_pointer[s_id]++;
-				}				
-				b++;			
-				}
-				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 1;
-				servent_execute_pattern_time[s_id]++;
-	     			servent_pattern[s_id]=99;
-				break;	
 			
 			case (-1):
 				printf(" servent %ld terminated !\n", s_id);
@@ -4507,6 +2947,7 @@ void servent_func(long s_id){
 			deadline_day = command_day ;
 			deadline_month = command_month ;
 			deadline_year = command_year ;
+			
 			int leap_year=0;
 			if((deadline_year % 4 == 0 && deadline_year % 100 != 0 ) || deadline_year % 400 == 0) {
 			leap_year = 1;
@@ -4538,14 +2979,7 @@ void servent_func(long s_id){
 			deadline_year++;
 			}
 			
-			/*printf("deadline_year %d  !\n", deadline_year);
-			printf("deadline_month %d  !\n", deadline_month);
-			printf("deadline_day %d  !\n", deadline_day);
-			printf("deadline_sec %d  !\n", deadline_sec);
-			printf("now_year %d  !\n", now_year);
-			printf("now_month %d  !\n", now_month);
-			printf("now_day %d  !\n", now_day);
-			printf("now_sec %d  !\n", now_sec);*/
+			
 			if(now_year > deadline_year){
 			delete_command_signal = 1;
 			}
@@ -4568,7 +3002,17 @@ void servent_func(long s_id){
 			}
 			
 			
-			if(delete_command_signal == 1){
+			/*if(delete_command_signal == 1){
+			puts(servent_command_buffer[s_id][i].timestamp);
+			printf("servent_command_buffer[s_id][i].effective_time; %d  !\n", servent_command_buffer[s_id][i].effective_time);
+			printf("deadline_year %d  !\n", deadline_year);
+			printf("deadline_month %d  !\n", deadline_month);
+			printf("deadline_day %d  !\n", deadline_day);
+			printf("deadline_sec %d  !\n", deadline_sec);
+			printf("now_year %d  !\n", now_year);
+			printf("now_month %d  !\n", now_month);
+			printf("now_day %d  !\n", now_day);
+			printf("now_sec %d  !\n", now_sec);
 			printf("delete_command_signal[%ld] %d  !\n", s_id,delete_command_signal);
 			Command temp = servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1];
 			servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1] = servent_command_buffer[s_id][i];
@@ -4576,7 +3020,7 @@ void servent_func(long s_id){
 		        
 		        memset(&servent_command_buffer[s_id][i],0,sizeof(Command));
 			servent_command_buffer_pointer[s_id]--;
-			}
+			}*/
 			
 		}
 		
@@ -4606,7 +3050,9 @@ void fake_servent_func(long s_id){
     int deadline_year,deadline_month,deadline_day,deadline_sec;
     char servent_send_message[1024];
     int send_peer=0; 
-        int peer_num=0;   
+    int peer_num=0;  
+    char string_ip[100],string_port[100],string_id[100];
+    
                   
   		if(servent_work_over[s_id] == 1){
 			return;
@@ -4707,7 +3153,7 @@ void fake_servent_func(long s_id){
 		
 		
 		if(servent_select_pattern_signal[s_id] == 1){
-		servent_pattern[s_id] = 2; 
+		servent_pattern[s_id] = 1; 
 		
 		//zxcc
 		}
@@ -4715,573 +3161,15 @@ void fake_servent_func(long s_id){
 		servent_pattern[s_id] = 99;
 		}
 		
-		for ( i = 0; i < servent_peer_num[s_id]; i++) {		   
-			if (servent_peer_list[s_id][i].reputation_value < 0 && servent_latency_signal[s_id] == 0) {
-		        printf("servent %d has to request peer !!!!! \n",s_id);
-		        servent_pattern[s_id]=2;
-		        break;
-		        }
-		        if (servent_peer_list[s_id][i].reputation_value == reputation_value_max && servent_peer_list[s_id][i].already_send_TM_signal == 0 
-		        && servent_latency_signal[servent_peer_list[s_id][i].peer_id] == 0 && servent_latency_signal[s_id] == 0) {   
-
-		                servent_peer_list[s_id][i].already_send_TM_signal = 1;
-		                servent_peer_list[s_id][i].trust_signal = 1;
-				send_target = servent_peer_list[s_id][i].peer_id;
-				
-				
-				memset(servent_send_message,0,1024);
-				servent_make_command(servent_send_message,servent[s_id].id,servent[send_target].id ,0,"f005");
-				
-
-	     			puts("");
-	     			if(servent_command_buffer_pointer[send_target] > 99){
-	     			servent_command_buffer_pointer[send_target] = 0;
-	     			}
-	     			strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
-	     			servent_command_buffer_pointer[send_target]++;
-	     				
-	     			puts(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
-	     			
-	     			
-	     			servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content); 
-				
-		        
-		        }
-		}
+		
 		
 
-	   	if(servent_trust_threshold[s_id] >= 4 && servent_latency_signal[s_id]==0 && servent_already_turn_to_latency_signal[s_id] == 0){
-
-	   	printf("servent %d trust_threshold %d !!!!! \n",s_id,servent_trust_threshold[s_id]);
-	   	printf("servent %d turn to latency !!!!! \n",s_id);
-	   	servent_latency_signal[s_id]=1;
-	   	servent_trust_threshold[s_id]=0;
-	   	servent_already_turn_to_latency_signal[s_id]=1;
-	   	
-	   	servent_peer_num[s_id]=0;
-		for(i=0;i<NUM_SERVENT_PEER;i++){
-		   if(servent_peer_list[s_id][i].peer_id!= -1)
-		   servent_peer_num[s_id]++;
-		}
-		
-		if(servent_peer_num[s_id]!=0){
-		
-		for(i=0;i<NUM_SERVENT_PEER;i++){
-		if(servent_peer_list[s_id][i].peer_id != -1 && i>=servent_peer_num[s_id]){
-		for ( j = 0; j < servent_peer_num[s_id]; j++) {
-		if(servent_peer_list[s_id][j].peer_id == -1){
-		    	   temp = servent_peer_list[s_id][j];
-			   servent_peer_list[s_id][j] = servent_peer_list[s_id][i];
-			   servent_peer_list[s_id][i] = temp;
-			   break;
-		}
-		   
-		}
-		   
-		}
-		   
-		}
-		   
-		}
-	   	
-	   	for ( i = 0; i < servent_peer_num[s_id]; i++) {		   
-			
-				send_target = servent_peer_list[s_id][i].peer_id;
-				
-				
-				memset(servent_send_message,0,1024);
-				servent_make_command(servent_send_message,servent[s_id].id,servent[send_target].id ,0,"f006");
-				
-
-	     			puts("");
-	     			if(servent_command_buffer_pointer[send_target] > 99){
-	     			servent_command_buffer_pointer[send_target] = 0;
-	     			}
-	     			strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
-	     			servent_command_buffer_pointer[send_target]++;
-	     				
-	     			puts(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
-	     			
-	     			
-	     			servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content); 
-				
-		        
-		        
-		}
-		puts("");
-
-	        /*for ( i = 0; i < servent_send_trust_message_to_me_pointer[s_id]; i++) {	
-	        		  
-	        		send_target = servent_send_trust_message_to_me[s_id][i];
-				printf("servent %ld send f006 to servent %d",s_id,send_target);
-				
-				memset(servent_send_message,0,1024);
-				servent_make_command(servent_send_message,servent[s_id].id,servent[send_target].id ,0,"f006");
-				
-
-	     			puts("");
-	     			if(servent_command_buffer_pointer[send_target] > 99){
-	     			servent_command_buffer_pointer[send_target] = 0;
-	     			}
-	     			
-	     			strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
-	     			servent_command_buffer_pointer[send_target]++;
-	     				
-	     			puts(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
-	     			
-	     			
-	     			servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content); 
-				
-		        	puts("");
-		        
-	        }*/
-	        
-	   	}
 	   	
 	   
 	   	
 		
 		
-		if(servent_latency_signal[s_id] == 1 && servent_select_pattern_signal[s_id] == 1){
-		puts("I am latency bot. I dont communicate with other bot");
-		//servent_pattern[s_id]=1;
-		}
 		
-		if(servent_resurrection_request_peer_signal[s_id] == 1){
-		
-		printf("servent %ld:I need to request 2 peer !!!!!!!\n",s_id);
-		
-		if(servent_already_execute_resurrection_signal[s_id] == 1){
-		for(i=0;i<NUM_SERVENT_PEER;i++){
-		if(servent_peer_list[s_id][i].peer_id != -1 && servent_eliminate_signal[servent_peer_list[s_id][i].peer_id] == 1){
-		servent_peer_list[s_id][i].peer_id = -1;
-		servent_peer_list[s_id][i].reputation_value = 0;
-		//servent_peer_list[s_id][i].sensor_signal = 0;
-		   
-		}
-		   
-		}
-		}
-		servent_peer_num[s_id]=0;
-		for(i=0;i<NUM_SERVENT_PEER;i++){
-		   if(servent_peer_list[s_id][i].peer_id!= -1 )
-		   servent_peer_num[s_id]++;
-		}
-		if(servent_peer_num[s_id]==0){
-		printf("servent %ld doesnt has peer !!! \n",s_id);
-		
-		servent_pattern[s_id]=99;
-		
-		}
-		if(servent_peer_num[s_id]!=0){
-		
-		for(i=0;i<NUM_SERVENT_PEER;i++){
-		if(servent_peer_list[s_id][i].peer_id != -1 && i>=servent_peer_num[s_id]){
-		for ( j = 0; j < servent_peer_num[s_id]; j++) {
-		if(servent_peer_list[s_id][j].peer_id == -1){
-		    	   temp = servent_peer_list[s_id][j];
-			   servent_peer_list[s_id][j] = servent_peer_list[s_id][i];
-			   servent_peer_list[s_id][i] = temp;
-			   break;
-		}
-		   
-		}
-		   
-		}
-		   
-		}
-		   
-		}
-		for ( i = 0; i < servent_peer_num[s_id] ; i++) {
-		   
-		printf("id:%d value:%d\n",servent_peer_list[s_id][i].peer_id, servent_peer_list[s_id][i].reputation_value);
-		}
-		
-		if(servent_peer_num[s_id]!=0){
-		int before_send_target = -1;
-		int shut_down_signal=0;
-		
-		for ( k = 0; k < 2; k++){
-		
-		//printf("k %d \n",k);
-		if(shut_down_signal == 1){
-		break;
-		}
-		
-		send_target=0;
-		invalid_peer_num = 0;
-		for(i=0;i<NUM_SERVENT_PEER;i++){
-		if(servent_peer_list[s_id][i].peer_id != -1 ){
-		if(servent_peer_list[s_id][i].reputation_value == -1 || servent_peer_list[s_id][i].trust_signal == 1 ){//|| servent_boot_signal[servent_peer_list[s_id][i].peer_id] == 0
-		invalid_peer_num++;
-		}  
-		}  
-		if(invalid_peer_num >= NUM_SERVENT_PEER-1){
-		break;
-		}
-				
-		}
-		if(invalid_peer_num >= NUM_SERVENT_PEER-1){
-		printf("servent %ld doesnt has peer can communicate !!! \n",s_id);
-		servent_pattern[s_id]=99;
-		shut_down_signal=1;
-		break;
-		}
-		servent_sort_peer(s_id);
-				
-		/*for ( i = servent_peer_num[s_id]-1; i >= 0 ; i--) {
-			if(servent_peer_list[s_id][i].reputation_value != 5 && servent_peer_list[s_id][i].reputation_value != -1 
-			&& servent_peer_list[s_id][i].peer_id != before_send_target){
-				send_target = servent_peer_list[s_id][i].peer_id;
-						
-				break;
-			}
-					
-		}
-		*/
-		if(servent_peer_num[s_id] != 0){
-		peer_num = servent_peer_num[s_id];
-		send_target = servent_peer_list[s_id][rand() % (peer_num)].peer_id;
-				
-				
-		for ( i = 0; i < servent_peer_num[s_id]; i++) {
-				
-		if(servent_peer_list[s_id][i].peer_id == send_target){
-		j=i;
-		while(servent_peer_list[s_id][j].reputation_value == -1 || servent_peer_list[s_id][j].trust_signal == 1 || servent_peer_list[s_id][j].peer_id == before_send_target 
-		){//|| servent_boot_signal[servent_peer_list[s_id][j].peer_id] == 0
-			
-		send_target = servent_peer_list[s_id][rand() % (peer_num)].peer_id;
-		
-		for ( j = 0; j < servent_peer_num[s_id]; j++) {
-		if(servent_peer_list[s_id][j].peer_id == send_target){
-		break;
-		}
-		}
-				
-		i = 0;    
-		
-		}
-				
-		}
-				
-		}
-				
-		}
-		
-		
-		before_send_target = send_target;
-		servent_peer_num[send_target]=0;
-		for(i=0;i<NUM_SERVENT_PEER;i++){
-			if(servent_peer_list[send_target][i].peer_id!= -1 )
-			servent_peer_num[send_target]++;
-		}
-		
-				
-		if(servent_boot_signal[send_target]==0){
-		printf("servent %ld shut down !!! \n",send_target);
-		printf("servent %ld reputation_value--!!! \n",send_target);
-		for ( i = 0; i < servent_peer_num[s_id]; i++) {
-			if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-				servent_peer_list[s_id][i].reputation_value--;
-			}
-		}
-				
-		servent_pattern[s_id]=99;
-		break;
-		}
-		
-		if(servent[send_target].sensor_signal == 1 ){
-			request_time[send_target]++;
-		}
-		if(servent[send_target].sensor_signal == 1 && servent[s_id].request_signal == 0 && enumeration_signal == 1){
-			servent[s_id].request_signal = 1;
-			vs++;
-		}
-		if(servent_peer_num[send_target]==0){
-			printf("send_target:servent %ld doesnt has peer !!! \n",send_target);
-			
-			
-		if(servent_peer_num[s_id] == 1){	
-		shut_down_signal=1;
-		printf("shut_down_signal %d !!! \n",shut_down_signal);
-		}
-		servent_pattern[s_id]=99;
-		break;
-		}
-		if(servent_latency_signal[send_target]==1){
-		printf("servent %ld already turn to latency bot !!! \n",send_target);
-		printf("servent %ld reputation_value--!!! \n",send_target);
-		for ( i = 0; i < servent_peer_num[s_id]; i++) {
-			if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-				servent_peer_list[s_id][i].reputation_value--;
-			}
-		}
-				
-		servent_pattern[s_id]=99;
-		break;
-		}
-		
-		
-		
-		
-		memset(servent_send_message,0,1024);
-		servent_make_command(servent_send_message,servent[s_id].id,servent[send_target].id ,0,"f003");
-		printf("servent %ld , send_data: %s , target servent:%d", s_id,servent_send_message,send_target);
-
-	     	puts("");
-	     			
-	     	if(servent_command_buffer_pointer[send_target] <= 99){
-	     	strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
-	     	servent_command_buffer_pointer[send_target]++;
-	     	puts(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
-	     	}
-	     	else if(servent_command_buffer_pointer[send_target] > 99){
-	     	servent_command_buffer_pointer[send_target] = 0;
-	     	strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
-	     	servent_command_buffer_pointer[send_target]++;
-	     	puts(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
-	     			
-	     	}
-	     	
-	     	if(servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content) == 0 
-	     	//&& servent[send_target].sensor_signal != 1 && servent[send_target].fake_signal != 1
-
-	     	){//&& enumeration_signal == 1 zxxx
-	     	printf("servent %ld reputation_value--!!! \n",send_target);
-		for ( i = 0; i < servent_peer_num[s_id]; i++) {
-			if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-				servent_peer_list[s_id][i].reputation_value--;
-			}
-		}
-				
-		servent_pattern[s_id]=99;
-		break;
-	     	}
-	     					
-	     	peer_comparison_result=0;		
-	     			
-	     	if(servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content) == 1){
-	
-		if(strcmp(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].command_code ,"f003" )==0 ){
-				
-		char string_ip[100],string_port[100],string_id[100];
-		extra_information_split(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].extra_information,string_ip,string_port,string_id);
-		send_peer = atoi(string_id);
-				
-		memset(servent_send_message,0,1024);
-		servent_make_command(servent_send_message,servent[send_target].id,servent[s_id].id ,0,"f004" );
-				
-				
-				
-		for ( i = 0; i < servent_peer_num[send_target]; i++) {	
-		if(servent_peer_list[send_target][i].peer_id == send_peer){
-				
-				
-		printf("servent %ld already have servent %d in peer list !\n",send_target,send_peer);
-		peer_comparison_result=1;
-		break;
-		}
-				
-				
-		}
-		if(send_target == send_peer){
-		printf("servent %ld cant add itself in peer list !\n",send_target);
-		peer_comparison_result=1;
-				
-		}
-		if(send_peer == -1 ){
-		printf("servent %ld cant add invalid peer in peer list !\n",send_target);
-		peer_comparison_result=1;
-				
-		}
-				
-		if(peer_comparison_result == 0 && servent_peer_num[send_target]==NUM_SERVENT_PEER){
-		printf("servent %ld remove servent %d in peer list !\n",send_target,servent_peer_list[send_target][0].peer_id);
-		printf("servent %ld add servent %d in peer list !\n",send_target,send_peer);
-		servent_peer_list[send_target][0].peer_id = send_peer;
-		servent_peer_list[send_target][0].reputation_value = reputation_value_base;
-				
-				
-				
-				
-				
-		}
-		if(peer_comparison_result == 0 && servent_peer_num[send_target] < NUM_SERVENT_PEER  ){
-		//printf("servent %ld remove servent %d in peer list !\n",send_target,servent_peer_list[send_target][0].peer_id);
-		printf("servent %ld add servent %d in peer list !\n",send_target,send_peer);
-		servent_peer_list[send_target][servent_peer_num[send_target]].peer_id = send_peer;
-		servent_peer_list[send_target][servent_peer_num[send_target]].reputation_value = reputation_value_base;
-				
-		servent_peer_num[send_target]++;
-						
-				
-				
-		}
-				
-					
-		if(servent_command_buffer_pointer[s_id] <= 99){
-		strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content, servent_send_message);
-	     	servent_command_buffer_pointer[s_id]++;
-		puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
-		}
-		else if(servent_command_buffer_pointer[s_id] > 99){
-		servent_command_buffer_pointer[s_id]=0;
-		strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content, servent_send_message);
-	     	servent_command_buffer_pointer[s_id]++;
-		puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
-		}			     	
-				
-					     			
-		}
-				
-	     	}
-		peer_comparison_result=0;		
-		if(servent_command_analysis(s_id,servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content) == 1){
-	
-		if(strcmp(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].command_code ,"f004" )==0 ){
-
-		if(servent[send_target].detect_and_reply_signal == 0 && servent[send_target].detect_signal == 1 && servent[s_id].fake_signal == 1 && enumeration_signal == 1){
-		servent[send_target].detect_and_reply_signal = 1;
-		vrc++;
-		}
-				
-
-		if(servent[servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id].detect_signal == 0 && servent[s_id].fake_signal == 1 && enumeration_signal == 1){
-		servent[servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id].detect_signal = 1;
-		vc++;
-		}
-				
-		if(servent[servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id].request_signal == 0 && enumeration_signal == 1 && servent[s_id].fake_signal == 1){
-		servent[servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id].request_signal = 1;
-		vs++;
-		}					
-		
-		for ( i = 0; i < servent_peer_num[s_id]; i++) {	
-
-		if(servent_peer_list[s_id][i].peer_id == servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id){
-		
-		
-		
-		printf("servent %ld already have servent %d in peer list !\n",s_id,servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id);
-		peer_comparison_result=1;
-		break;
-		}
-				
-				
-		}
-		if(s_id == servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id){
-		printf("servent %ld cant add itself in peer list !\n",s_id);
-		peer_comparison_result=1;
-				
-		}
-		
-		if(servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id == -1){
-		printf("servent %ld cant add invalid peer in peer list !\n",s_id);
-		peer_comparison_result=1;
-				
-		}
-		if(peer_comparison_result == 0 && servent_peer_num[s_id]==NUM_SERVENT_PEER){
-		printf("servent %ld remove servent %d in peer list !\n",s_id,servent_peer_list[s_id][0].peer_id);
-		printf("servent %ld add servent %d in peer list !\n",s_id,servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id);
-		servent_peer_list[s_id][0].peer_id = servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id;
-		servent_peer_list[s_id][0].reputation_value = reputation_value_base;
-					
-		
-				
-		}
-		if(peer_comparison_result == 0 && servent_peer_num[s_id] < NUM_SERVENT_PEER  ){
-		//printf("servent %ld remove servent %d in peer list !\n",s_id,servent_peer_list[s_id][0].peer_id);
-		printf("servent %ld add servent %d in peer list !\n",s_id,servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id);
-		servent_peer_list[s_id][servent_peer_num[s_id]].peer_id = servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id;
-		servent_peer_list[s_id][servent_peer_num[s_id]].reputation_value = reputation_value_base;
-		
-		servent_peer_num[s_id]++;
-				
-		
-		}
-				
-		
-				
-					
-				  			
-				
-		servent_rearrange_peer(s_id);   
-				
-		for(i=0;i<servent_peer_num[s_id];i++){	
-		if(servent_peer_list[s_id][i].peer_id ==  send_target && servent_peer_list[s_id][i].reputation_value < reputation_value_max ){
-		servent_peer_list[s_id][i].reputation_value++;
-		break;
-		}
-		}
-				
-				
-					
-		servent_sort_peer(s_id);			
-				
-		for ( i = 0; i < servent_peer_num[s_id]; i++) {
-		if(servent_peer_list[s_id][i].peer_id!= -1 ){
-		printf("id:%d value:%d\n",servent_peer_list[s_id][i].peer_id, servent_peer_list[s_id][i].reputation_value);
-		}
-				
-		}	     	
-				
-					     			
-		}
-				
-	     	}
-		
-		
-			
-		}
-			if(servent_already_execute_resurrection_signal[s_id] == 1){
-			for(i=0;i<NUM_SERVENT_PEER;i++){
-			if(servent_peer_list[s_id][i].peer_id != -1 && servent_eliminate_signal[servent_peer_list[s_id][i].peer_id] == 1){
-			servent_peer_list[s_id][i].peer_id = -1;
-			servent_peer_list[s_id][i].reputation_value = 0;
-			//servent_peer_list[s_id][i].sensor_signal = 0;
-			   
-			}
-			   
-			}
-			}
-			servent_rearrange_peer(s_id); 
-			
-			servent_peer_num[s_id]=0;
-			for(i=0;i<NUM_SERVENT_PEER;i++){
-			   if(servent_peer_list[s_id][i].peer_id!= -1 )
-			   servent_peer_num[s_id]++;
-			}
-			
-			for(i=0;i<servent_peer_num[s_id];i++){
-			if(servent_peer_list[s_id][i].reputation_value > 2 && servent_peer_list[s_id][i].peer_id !=-1 ){
-
-			       
-			       servent_peer_list[s_id][i].reputation_value = 2;
-			       
-			}
-			else if( servent_latency_signal[servent_peer_list[s_id][i].peer_id] == 1 && servent_peer_list[s_id][i].peer_id !=-1 ){
-
-			       
-			       servent_peer_list[s_id][i].reputation_value = 2;
-			       
-			}
-			else if(servent_peer_list[s_id][i].reputation_value <= 2 && servent_peer_list[s_id][i].peer_id !=-1 ){
-
-			       
-			       servent_peer_list[s_id][i].reputation_value = 0;
-			       
-			}
-			   
-			   
-			}
-		
-		}
-		
-		servent_resurrection_request_peer_signal[s_id] = 0;
-		
-		
-		}
 		
 		if(servent_pattern[s_id]!=99){
 		servent_log[s_id][servent_execute_pattern_time[s_id]].num_pattern = servent_pattern[s_id];
@@ -5297,123 +3185,8 @@ void fake_servent_func(long s_id){
 				servent_pattern[s_id]=99;
 				break;
 			
-			case 1://botmaster_command
-				//file_num=rand()  % 3;
-				file_num=0;//***-
-				switch(file_num){
-				case 0:
-					a=0;
-					b=0;
-					
-					printf("servent %ld receive command%d from relay station:\n",s_id,a+1);
-					while(file_data[a][b][0]!= '\0'){
-					
-					for(i=0;i<servent_command_buffer_pointer[s_id];i++){	
-					
-						command_comparison_result=strcmp(servent_command_buffer[s_id][i].content,file_data[a][b]);
-						if(command_comparison_result== 0){
-						puts(servent_command_buffer[s_id][i].content);
-						break;
-						}
-					}
-					
-					if(command_comparison_result== 0){
-					printf("servent %ld already have (%s)\n",s_id,file_data[a][b]);
-					
-					}
-					if(command_comparison_result != 0){
-					if(servent_command_buffer_pointer[s_id] > 99){
-					servent_command_buffer_pointer[s_id]=0;
-					}
-					strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content,file_data[a][b]);
-					puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content);
-					
-					servent_command_buffer_pointer[s_id]++;
-					servent_command_analysis(s_id,servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
-					}
-					
-					
-					b++;
-					
-					}
-					
-					
-					
-					break;
-				case 1:
-					a=1;
-					b=0;
-					
-					printf("servent %ld receive command%d from relay station:\n",s_id,a+1);
-					while(file_data[a][b][0]!= '\0'){
-					
-					for(i=0;i<servent_command_buffer_pointer[s_id];i++){	
-					command_comparison_result=strcmp(servent_command_buffer[s_id][i].content,file_data[a][b]);
-					if(command_comparison_result== 0){break;}
-					}
-					
-					if(command_comparison_result== 0){
-					printf("servent %ld already have (%s)\n",s_id,file_data[a][b]);
-					
-					}
-					if(command_comparison_result != 0){
-					if(servent_command_buffer_pointer[s_id] > 99){
-					servent_command_buffer_pointer[s_id]=0;
-					}
-					strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content,file_data[a][b]);
-					puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content);
-					
-					servent_command_buffer_pointer[s_id]++;
-					servent_command_analysis(s_id,servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
-					}
-					
-					
-					b++;
-					
-					}
-					
-					
-					
-					break;
-				case 2:
-					a=2;
-					b=0;
-					printf("servent %ld receive command%d from relay station:\n",s_id,a+1);
-					while(file_data[a][b][0]!= '\0'){
-					
-					for(i=0;i<servent_command_buffer_pointer[s_id];i++){	
-					command_comparison_result=strcmp(servent_command_buffer[s_id][i].content,file_data[a][b]);
-					if(command_comparison_result== 0){break;}
-					}
-					
-					if(command_comparison_result== 0){
-					printf("servent %ld already have (%s)\n",s_id,file_data[a][b]);
-					
-					}
-					if(command_comparison_result != 0){
-					if(servent_command_buffer_pointer[s_id] > 99){
-					servent_command_buffer_pointer[s_id]=0;
-					}
-					strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content,file_data[a][b]);
-					puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content);
-					servent_command_buffer_pointer[s_id]++;
-					servent_command_analysis(s_id,servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
-					}
-					
-					
-					b++;
-					
-					}
-					
-					
-					break;
-				}
-				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 1;
-				servent_execute_pattern_time[s_id]++;
-				servent_pattern[s_id]=99;
-				
-				break;
-			case 2:
+			
+			case 1:
 				
 				send_target=0;
 				invalid_peer_num = 0;
@@ -5512,12 +3285,6 @@ void fake_servent_func(long s_id){
 				
 				if(servent_boot_signal[send_target]==0){
 				printf("servent %ld shut down !!! \n",send_target);
-				printf("servent %ld reputation_value--!!! \n",send_target);
-				for ( i = 0; i < servent_peer_num[s_id]; i++) {
-					if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-						servent_peer_list[s_id][i].reputation_value--;
-					}
-				}
 				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 0;
 				servent_execute_pattern_time[s_id]++;
 				servent_pattern[s_id]=99;
@@ -5543,19 +3310,7 @@ void fake_servent_func(long s_id){
 				break;
 				}
 				
-				if(servent_latency_signal[send_target]==1){
-				printf("servent %ld already turn to latency bot !!! \n",send_target);
-				printf("servent %ld reputation_value--!!! \n",send_target);
-				for ( i = 0; i < servent_peer_num[s_id]; i++) {
-					if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-						servent_peer_list[s_id][i].reputation_value--;
-					}
-				}
-				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 0;
-				servent_execute_pattern_time[s_id]++;
-				servent_pattern[s_id]=99;
-				break;
-				}
+				
 				
 				
 				
@@ -5577,30 +3332,14 @@ void fake_servent_func(long s_id){
 	     			
 	     			}
 	     			
-	     			if(servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content) == 0 
-	     			//&& servent[send_target].sensor_signal != 1 && servent[send_target].fake_signal != 1
-
-	     			){
-	     			//&& enumeration_signal == 1 zxxx
-	     			printf("servent %ld reputation_value--!!! \n",send_target);
-				for ( i = 0; i < servent_peer_num[s_id]; i++) {
-					if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-						servent_peer_list[s_id][i].reputation_value--;
-					}
-				}
-				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 0;
-				servent_execute_pattern_time[s_id]++;
-				servent_pattern[s_id]=99;
-				
-				break;
-	     			}
+	     			
 				
 	     			peer_comparison_result=0;
 	     			if(servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content) == 1){
 	
 				if(strcmp(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].command_code ,"f003" )==0 ){
 				
-				char string_ip[100],string_port[100],string_id[100];
+				
 				extra_information_split(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].extra_information,string_ip,string_port,string_id);
 				send_peer = atoi(string_id);
 				
@@ -5675,9 +3414,12 @@ void fake_servent_func(long s_id){
 				
 	     			}
 				peer_comparison_result=0;
+				
 				if(servent_command_analysis(s_id,servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content) == 1){
 	
 				if(strcmp(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].command_code ,"f004" )==0 ){
+				extra_information_split(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].extra_information,string_ip,string_port,string_id);
+				send_peer = atoi(string_id);
 							
 				if(servent[send_target].detect_and_reply_signal == 0 && servent[send_target].detect_signal == 1 && servent[s_id].fake_signal == 1 && enumeration_signal == 1){
 				servent[send_target].detect_and_reply_signal = 1;
@@ -5685,76 +3427,59 @@ void fake_servent_func(long s_id){
 				}
 				
 
-				if(servent[servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id].detect_signal == 0 && servent[s_id].fake_signal == 1 && enumeration_signal == 1){
-				servent[servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id].detect_signal = 1;
+				if(servent[send_peer].detect_signal == 0 && servent[s_id].fake_signal == 1 && enumeration_signal == 1){
+				servent[send_peer].detect_signal = 1;
 				vc++;
 				}
 				
-				if(servent[servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id].request_signal == 0 && enumeration_signal == 1 && servent[s_id].fake_signal == 1){
-				servent[servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id].request_signal = 1;
+				if(servent[send_peer].request_signal == 0 && enumeration_signal == 1 && servent[s_id].fake_signal == 1){
+				servent[send_peer].request_signal = 1;
 				vs++;
 				}
 				
+				
+				int select_remove=0;
+				select_remove = rand() % 10;
 				for ( i = 0; i < servent_peer_num[s_id]; i++) {	
-				if(servent_peer_list[s_id][i].peer_id == servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id){
-				
-				
-				
-				
-				printf("servent %ld already have servent %d in peer list !\n",s_id,servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id);
-				peer_comparison_result=1;
-				break;
+					if(servent_peer_list[s_id][i].peer_id == send_peer){
+					printf("servent %ld already have servent %d in peer list !\n",s_id,send_peer);
+					peer_comparison_result=1;
+					break;
+					}
+
 				}
-				
-				
-				}
-				if(s_id == servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id){
+				if(s_id == send_peer){
 				printf("servent %ld cant add itself in peer list !\n",s_id);
 				peer_comparison_result=1;
-				
 				}
-				if(servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id == -1){
+				if(send_peer == -1 ){
 				printf("servent %ld cant add invalid peer in peer list !\n",s_id);
 				peer_comparison_result=1;
-				
 				}
+				
 				if(peer_comparison_result == 0 && servent_peer_num[s_id]==NUM_SERVENT_PEER){
 				printf("servent %ld remove servent %d in peer list !\n",s_id,servent_peer_list[s_id][0].peer_id);
-				printf("servent %ld add servent %d in peer list !\n",s_id,servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id);
-				servent_peer_list[s_id][0].peer_id = servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id;
+				printf("servent %ld add servent %d in peer list !\n",s_id,send_peer);
+				servent_peer_list[s_id][0].peer_id = send_peer;
 				servent_peer_list[s_id][0].reputation_value = reputation_value_base;
-
-				
-				
-				
 				}
 				if(peer_comparison_result == 0 && servent_peer_num[s_id] < NUM_SERVENT_PEER  ){
 				//printf("servent %ld remove servent %d in peer list !\n",s_id,servent_peer_list[s_id][0].peer_id);
-				printf("servent %ld add servent %d in peer list !\n",s_id,servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id);
-				servent_peer_list[s_id][servent_peer_num[s_id]].peer_id = servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id;
+				printf("servent %ld add servent %d in peer list !\n",s_id,send_peer);
+				servent_peer_list[s_id][servent_peer_num[s_id]].peer_id = send_peer;
 				servent_peer_list[s_id][servent_peer_num[s_id]].reputation_value = reputation_value_base;
-
 				servent_peer_num[s_id]++;
-				
-				
-								
-				
 				}
 				
 				if(servent_log[s_id][servent_execute_pattern_time[s_id]].num_pattern == 1 && peer_comparison_result == 0 ){
-				servent_log[s_id][servent_execute_pattern_time[s_id]].receive_peer=servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id;
+				servent_log[s_id][servent_execute_pattern_time[s_id]].receive_peer=send_peer;
 				}
 					
 				  			
 				
 				servent_rearrange_peer(s_id);   
 				
-				for(i=0;i<servent_peer_num[s_id];i++){	
-				if(servent_peer_list[s_id][i].peer_id ==  send_target && servent_peer_list[s_id][i].reputation_value < reputation_value_max ){
-				servent_peer_list[s_id][i].reputation_value++;
-				break;
-				}
-				}
+				
 				
 				
 					
@@ -5890,7 +3615,7 @@ void fake_servent_func(long s_id){
 			}
 			
 			
-			if(delete_command_signal == 1){
+			/*if(delete_command_signal == 1){
 			//printf("delete_command_signal[%ld] %d  !\n", s_id,delete_command_signal);
 			Command temp = servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1];
 			servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1] = servent_command_buffer[s_id][i];
@@ -5899,7 +3624,7 @@ void fake_servent_func(long s_id){
 		        memset(&servent_command_buffer[s_id][i],0,sizeof(Command));
 
 			servent_command_buffer_pointer[s_id]--;
-			}
+			}*/
 			
 		}
 		
@@ -5929,7 +3654,9 @@ void sensor_func(long s_id){
     int deadline_year,deadline_month,deadline_day,deadline_sec;
     char servent_send_message[1024];
     int send_peer=0;     
-        int peer_num=0;              
+    int peer_num=0;   
+    char string_ip[100],string_port[100],string_id[100];
+              
   
 		
 		if(servent_work_over[s_id] == 1){
@@ -6033,7 +3760,7 @@ void sensor_func(long s_id){
 		
 		
 		if(servent_select_pattern_signal[s_id] == 1){
-		servent_pattern[s_id] =  rand() % 4+1;
+		servent_pattern[s_id] =  rand() % 2+1;
 		//zxcc
 		}
 		if(servent_select_pattern_signal[s_id] == 0){
@@ -6042,557 +3769,11 @@ void sensor_func(long s_id){
 		//***-
 		
 						
-		for ( i = 0; i < servent_peer_num[s_id]; i++) {		   
-			if (servent_peer_list[s_id][i].reputation_value < 0 && servent_latency_signal[s_id] == 0) {
-		        servent_pattern[s_id]=3;
-		        printf("servent %d has to request peer !!!!! \n",s_id);
-		        break;
-		        }
-		        if (servent_peer_list[s_id][i].reputation_value == reputation_value_max && servent_peer_list[s_id][i].already_send_TM_signal == 0 
-		        && servent_latency_signal[servent_peer_list[s_id][i].peer_id] == 0 && servent_latency_signal[s_id] == 0) {   
-
-		                servent_peer_list[s_id][i].already_send_TM_signal = 1;
-		                servent_peer_list[s_id][i].trust_signal = 1;
-				send_target = servent_peer_list[s_id][i].peer_id;
-				
-				
-				memset(servent_send_message,0,1024);
-				servent_make_command(servent_send_message,servent[s_id].id,servent[send_target].id ,0,"f005");
-				
-
-	     			puts("");
-	     			if(servent_command_buffer_pointer[send_target] > 99){
-	     			servent_command_buffer_pointer[send_target] = 0;
-	     			}
-	     			strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
-	     			servent_command_buffer_pointer[send_target]++;
-	     				
-	     			puts(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
-	     			
-	     			
-	     			servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content); 
-				
-		        
-		        }
-		}
+		
 		
 
-	   	if(servent_trust_threshold[s_id] >= 4 && servent_latency_signal[s_id]==0 && servent_already_turn_to_latency_signal[s_id] == 0){
-
-	   	printf("servent %d trust_threshold %d !!!!! \n",s_id,servent_trust_threshold[s_id]);
-	   	printf("servent %d turn to latency !!!!! \n",s_id);
-	   	servent_latency_signal[s_id]=1;
-	   	servent_trust_threshold[s_id]=0;
-	   	servent_already_turn_to_latency_signal[s_id]=1;
-	   	
-	   	servent_peer_num[s_id]=0;
-		for(i=0;i<NUM_SERVENT_PEER;i++){
-		   if(servent_peer_list[s_id][i].peer_id!= -1)
-		   servent_peer_num[s_id]++;
-		}
-		
-		if(servent_peer_num[s_id]!=0){
-		
-		for(i=0;i<NUM_SERVENT_PEER;i++){
-		if(servent_peer_list[s_id][i].peer_id != -1 && i>=servent_peer_num[s_id]){
-		for ( j = 0; j < servent_peer_num[s_id]; j++) {
-		if(servent_peer_list[s_id][j].peer_id == -1){
-		    	   temp = servent_peer_list[s_id][j];
-			   servent_peer_list[s_id][j] = servent_peer_list[s_id][i];
-			   servent_peer_list[s_id][i] = temp;
-			   break;
-		}
-		   
-		}
-		   
-		}
-		   
-		}
-		   
-		}
-	   	
-	   	for ( i = 0; i < servent_peer_num[s_id]; i++) {		   
-			
-				send_target = servent_peer_list[s_id][i].peer_id;
-				
-				
-				memset(servent_send_message,0,1024);
-				servent_make_command(servent_send_message,servent[s_id].id,servent[send_target].id ,0,"f006");
-				
-
-	     			puts("");
-	     			if(servent_command_buffer_pointer[send_target] > 99){
-	     			servent_command_buffer_pointer[send_target] = 0;
-	     			}
-	     			strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
-	     			servent_command_buffer_pointer[send_target]++;
-	     				
-	     			puts(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
-	     			
-	     			
-	     			servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content); 
-				
-		        
-		        
-		}
-		puts("");
-
-	        /*for ( i = 0; i < servent_send_trust_message_to_me_pointer[s_id]; i++) {	
-	        		  
-	        		send_target = servent_send_trust_message_to_me[s_id][i];
-				printf("servent %ld send f006 to servent %d",s_id,send_target);
-				
-				memset(servent_send_message,0,1024);
-				servent_make_command(servent_send_message,servent[s_id].id,servent[send_target].id ,0,"f006");
-				
-
-	     			puts("");
-	     			if(servent_command_buffer_pointer[send_target] > 99){
-	     			servent_command_buffer_pointer[send_target] = 0;
-	     			}
-	     			
-	     			strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
-	     			servent_command_buffer_pointer[send_target]++;
-	     				
-	     			puts(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
-	     			
-	     			
-	     			servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content); 
-				
-		        	puts("");
-		        
-	        }*/
-	        
-	   	}
-	   	
-	   
 	   	
 		
-		
-		if(servent_latency_signal[s_id] == 1 && servent_select_pattern_signal[s_id] == 1){
-		puts("I am latency bot. I dont communicate with other bot");
-		servent_pattern[s_id]=1;
-		}
-		
-		if(servent_resurrection_request_peer_signal[s_id] == 1){
-		
-		printf("servent %ld:I need to request 2 peer !!!!!!!\n",s_id);
-		
-		if(servent_already_execute_resurrection_signal[s_id] == 1){
-		for(i=0;i<NUM_SERVENT_PEER;i++){
-		if(servent_peer_list[s_id][i].peer_id != -1 && servent_eliminate_signal[servent_peer_list[s_id][i].peer_id] == 1){
-		servent_peer_list[s_id][i].peer_id = -1;
-		servent_peer_list[s_id][i].reputation_value = 0;
-		//servent_peer_list[s_id][i].sensor_signal = 0;
-		   
-		}
-		   
-		}
-		}
-		servent_peer_num[s_id]=0;
-		for(i=0;i<NUM_SERVENT_PEER;i++){
-		   if(servent_peer_list[s_id][i].peer_id!= -1 )
-		   servent_peer_num[s_id]++;
-		}
-		if(servent_peer_num[s_id]==0){
-		printf("servent %ld doesnt has peer !!! \n",s_id);
-		
-		servent_pattern[s_id]=99;
-		
-		}
-		if(servent_peer_num[s_id]!=0){
-		
-		for(i=0;i<NUM_SERVENT_PEER;i++){
-		if(servent_peer_list[s_id][i].peer_id != -1 && i>=servent_peer_num[s_id]){
-		for ( j = 0; j < servent_peer_num[s_id]; j++) {
-		if(servent_peer_list[s_id][j].peer_id == -1){
-		    	   temp = servent_peer_list[s_id][j];
-			   servent_peer_list[s_id][j] = servent_peer_list[s_id][i];
-			   servent_peer_list[s_id][i] = temp;
-			   break;
-		}
-		   
-		}
-		   
-		}
-		   
-		}
-		   
-		}
-		for ( i = 0; i < servent_peer_num[s_id] ; i++) {
-		   
-		printf("id:%d value:%d\n",servent_peer_list[s_id][i].peer_id, servent_peer_list[s_id][i].reputation_value);
-		}
-		
-		if(servent_peer_num[s_id]!=0){
-		int before_send_target = -1;
-		int shut_down_signal=0;
-		
-		for ( k = 0; k < 2; k++){
-		
-		//printf("k %d \n",k);
-		if(shut_down_signal == 1){
-		break;
-		}
-		
-		send_target=0;
-		invalid_peer_num = 0;
-		for(i=0;i<NUM_SERVENT_PEER;i++){
-		if(servent_peer_list[s_id][i].peer_id != -1 ){
-		if(servent_peer_list[s_id][i].reputation_value == -1 || servent_peer_list[s_id][i].trust_signal == 1 ){//|| servent_boot_signal[servent_peer_list[s_id][i].peer_id] == 0
-		invalid_peer_num++;
-		}  
-		}  
-		if(invalid_peer_num >= NUM_SERVENT_PEER-1){
-		break;
-		}
-				
-		}
-		if(invalid_peer_num >= NUM_SERVENT_PEER-1){
-		printf("servent %ld doesnt has peer can communicate !!! \n",s_id);
-		servent_pattern[s_id]=99;
-		shut_down_signal=1;
-		break;
-		}
-		servent_sort_peer(s_id);
-				
-		/*for ( i = servent_peer_num[s_id]-1; i >= 0 ; i--) {
-			if(servent_peer_list[s_id][i].reputation_value != 5 && servent_peer_list[s_id][i].reputation_value != -1 
-			&& servent_peer_list[s_id][i].peer_id != before_send_target){
-				send_target = servent_peer_list[s_id][i].peer_id;
-						
-				break;
-			}
-					
-		}*/
-		if(servent_peer_num[s_id] != 0){
-		peer_num = servent_peer_num[s_id];
-		send_target = servent_peer_list[s_id][rand() % (peer_num)].peer_id;
-				
-				
-		for ( i = 0; i < servent_peer_num[s_id]; i++) {
-				
-		if(servent_peer_list[s_id][i].peer_id == send_target){
-		j=i;
-		while(servent_peer_list[s_id][j].reputation_value == -1 || servent_peer_list[s_id][j].trust_signal == 1 || servent_peer_list[s_id][j].peer_id == before_send_target 
-		){//|| servent_boot_signal[servent_peer_list[s_id][j].peer_id] == 0
-			
-		send_target = servent_peer_list[s_id][rand() % (peer_num)].peer_id;
-		
-		for ( j = 0; j < servent_peer_num[s_id]; j++) {
-		if(servent_peer_list[s_id][j].peer_id == send_target){
-		break;
-		}
-		}
-				
-		i = 0;    
-		
-		}
-				
-		}
-				
-		}
-				
-		}
-		
-		
-		before_send_target = send_target;
-		servent_peer_num[send_target]=0;
-		for(i=0;i<NUM_SERVENT_PEER;i++){
-			if(servent_peer_list[send_target][i].peer_id!= -1 )
-			servent_peer_num[send_target]++;
-		}
-		
-				
-		if(servent_boot_signal[send_target]==0){
-		printf("servent %ld shut down !!! \n",send_target);
-		printf("servent %ld reputation_value--!!! \n",send_target);
-		for ( i = 0; i < servent_peer_num[s_id]; i++) {
-			if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-				servent_peer_list[s_id][i].reputation_value--;
-			}
-		}
-				
-		servent_pattern[s_id]=99;
-		break;
-		}
-		
-		
-		if(servent[send_target].sensor_signal == 1 ){
-			request_time[send_target]++;
-		}
-		if(servent[send_target].sensor_signal == 1 && servent[s_id].request_signal == 0 && enumeration_signal == 1){
-			servent[s_id].request_signal = 1;
-			vs++;
-		}
-		
-		if(servent_peer_num[send_target]==0){
-			printf("send_target:servent %ld doesnt has peer !!! \n",send_target);
-			
-		if(servent_peer_num[s_id] == 1){	
-		shut_down_signal=1;
-		printf("shut_down_signal %d !!! \n",shut_down_signal);
-		}
-		servent_pattern[s_id]=99;
-		break;
-		}
-		if(servent_latency_signal[send_target]==1){
-		printf("servent %ld already turn to latency bot !!! \n",send_target);
-		printf("servent %ld reputation_value--!!! \n",send_target);
-		for ( i = 0; i < servent_peer_num[s_id]; i++) {
-			if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-				servent_peer_list[s_id][i].reputation_value--;
-			}
-		}
-				
-		servent_pattern[s_id]=99;
-		break;
-		}
-		
-		
-		
-		memset(servent_send_message,0,1024);
-		servent_make_command(servent_send_message,servent[s_id].id,servent[send_target].id ,0,"f003");
-		printf("servent %ld , send_data: %s , target servent:%d", s_id,servent_send_message,send_target);
-
-	     	puts("");
-	     			
-	     	if(servent_command_buffer_pointer[send_target] <= 99){
-	     	strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
-	     	servent_command_buffer_pointer[send_target]++;
-	     	puts(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
-	     	}
-	     	else if(servent_command_buffer_pointer[send_target] > 99){
-	     	servent_command_buffer_pointer[send_target] = 0;
-	     	strcpy(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]].content, servent_send_message);
-	     	servent_command_buffer_pointer[send_target]++;
-	     	puts(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content);
-	     			
-	     	}
-	     	
-	     	if(servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content) == 0 
-	     	//&& servent[send_target].sensor_signal != 1 && servent[send_target].fake_signal != 1
-
-	     	){//&& enumeration_signal == 1 zxxx
-	     	printf("servent %ld reputation_value--!!! \n",send_target);
-		for ( i = 0; i < servent_peer_num[s_id]; i++) {
-			if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-				servent_peer_list[s_id][i].reputation_value--;
-			}
-		}
-				
-		servent_pattern[s_id]=99;
-		break;
-	     	}
-	     					
-	     	peer_comparison_result=0;		
-	     			
-	     	if(servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content) == 1){
-	
-		if(strcmp(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].command_code ,"f003" )==0 ){
-				
-		char string_ip[100],string_port[100],string_id[100];
-		extra_information_split(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].extra_information,string_ip,string_port,string_id);
-		send_peer = atoi(string_id);
-				
-		memset(servent_send_message,0,1024);
-		servent_make_command(servent_send_message,servent[send_target].id,servent[s_id].id ,0,"f004" );
-				
-				
-				
-		for ( i = 0; i < servent_peer_num[send_target]; i++) {	
-		if(servent_peer_list[send_target][i].peer_id == send_peer){
-				
-				
-		printf("servent %ld already have servent %d in peer list !\n",send_target,send_peer);
-		peer_comparison_result=1;
-		break;
-		}
-				
-				
-		}
-		if(send_target == send_peer){
-		printf("servent %ld cant add itself in peer list !\n",send_target);
-		peer_comparison_result=1;
-				
-		}
-		if(send_peer == -1 ){
-		printf("servent %ld cant add invalid peer in peer list !\n",send_target);
-		peer_comparison_result=1;
-				
-		}
-				
-		if(peer_comparison_result == 0 && servent_peer_num[send_target]==NUM_SERVENT_PEER){
-		printf("servent %ld remove servent %d in peer list !\n",send_target,servent_peer_list[send_target][0].peer_id);
-		printf("servent %ld add servent %d in peer list !\n",send_target,send_peer);
-		servent_peer_list[send_target][0].peer_id = send_peer;
-		servent_peer_list[send_target][0].reputation_value = reputation_value_base;
-				
-				
-				
-				
-				
-		}
-		if(peer_comparison_result == 0 && servent_peer_num[send_target] < NUM_SERVENT_PEER  ){
-		//printf("servent %ld remove servent %d in peer list !\n",send_target,servent_peer_list[send_target][0].peer_id);
-		printf("servent %ld add servent %d in peer list !\n",send_target,send_peer);
-		servent_peer_list[send_target][servent_peer_num[send_target]].peer_id = send_peer;
-		servent_peer_list[send_target][servent_peer_num[send_target]].reputation_value = reputation_value_base;
-				
-		servent_peer_num[send_target]++;
-						
-				
-				
-		}
-				
-			
-				
-				
-		if(servent_command_buffer_pointer[s_id] <= 99){
-		strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content, servent_send_message);
-	     	servent_command_buffer_pointer[s_id]++;
-		puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
-		}
-		else if(servent_command_buffer_pointer[s_id] > 99){
-		servent_command_buffer_pointer[s_id]=0;
-		strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content, servent_send_message);
-	     	servent_command_buffer_pointer[s_id]++;
-		puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
-		}			     	
-				
-					     			
-		}
-				
-	     	}
-		peer_comparison_result=0;		
-		if(servent_command_analysis(s_id,servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content) == 1){
-	
-		if(strcmp(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].command_code ,"f004" )==0 ){
-
-							
-		
-		for ( i = 0; i < servent_peer_num[s_id]; i++) {	
-
-		if(servent_peer_list[s_id][i].peer_id == servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id){
-		
-		
-		
-		printf("servent %ld already have servent %d in peer list !\n",s_id,servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id);
-		peer_comparison_result=1;
-		break;
-		}
-				
-				
-		}
-		if(s_id == servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id){
-		printf("servent %ld cant add itself in peer list !\n",s_id);
-		peer_comparison_result=1;
-				
-		}
-		
-		if(servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id == -1){
-		printf("servent %ld cant add invalid peer in peer list !\n",s_id);
-		peer_comparison_result=1;
-				
-		}
-		if(peer_comparison_result == 0 && servent_peer_num[s_id]==NUM_SERVENT_PEER){
-		printf("servent %ld remove servent %d in peer list !\n",s_id,servent_peer_list[s_id][0].peer_id);
-		printf("servent %ld add servent %d in peer list !\n",s_id,servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id);
-		servent_peer_list[s_id][0].peer_id = servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id;
-		servent_peer_list[s_id][0].reputation_value = reputation_value_base;
-					
-		
-				
-		}
-		if(peer_comparison_result == 0 && servent_peer_num[s_id] < NUM_SERVENT_PEER  ){
-		//printf("servent %ld remove servent %d in peer list !\n",s_id,servent_peer_list[s_id][0].peer_id);
-		printf("servent %ld add servent %d in peer list !\n",s_id,servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id);
-		servent_peer_list[s_id][servent_peer_num[s_id]].peer_id = servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id;
-		servent_peer_list[s_id][servent_peer_num[s_id]].reputation_value = reputation_value_base;
-		
-		servent_peer_num[s_id]++;
-				
-		
-		}
-				
-		  			
-				
-		servent_rearrange_peer(s_id);   
-				
-		for(i=0;i<servent_peer_num[s_id];i++){	
-		if(servent_peer_list[s_id][i].peer_id ==  send_target && servent_peer_list[s_id][i].reputation_value < reputation_value_max ){
-		servent_peer_list[s_id][i].reputation_value++;
-		break;
-		}
-		}
-				
-				
-					
-		servent_sort_peer(s_id);			
-				
-		for ( i = 0; i < servent_peer_num[s_id]; i++) {
-		if(servent_peer_list[s_id][i].peer_id!= -1 ){
-		printf("id:%d value:%d\n",servent_peer_list[s_id][i].peer_id, servent_peer_list[s_id][i].reputation_value);
-		}
-				
-		}	     	
-				
-					     			
-		}
-				
-	     	}
-		
-		
-			
-		}
-			if(servent_already_execute_resurrection_signal[s_id] == 1){
-			for(i=0;i<NUM_SERVENT_PEER;i++){
-			if(servent_peer_list[s_id][i].peer_id != -1 && servent_eliminate_signal[servent_peer_list[s_id][i].peer_id] == 1){
-			servent_peer_list[s_id][i].peer_id = -1;
-			servent_peer_list[s_id][i].reputation_value = 0;
-			//servent_peer_list[s_id][i].sensor_signal = 0;
-			   
-			}
-			   
-			}
-			}
-			servent_rearrange_peer(s_id); 
-			
-			servent_peer_num[s_id]=0;
-			for(i=0;i<NUM_SERVENT_PEER;i++){
-			   if(servent_peer_list[s_id][i].peer_id!= -1 )
-			   servent_peer_num[s_id]++;
-			}
-			
-			for(i=0;i<servent_peer_num[s_id];i++){
-			if(servent_peer_list[s_id][i].reputation_value > 2 && servent_peer_list[s_id][i].peer_id !=-1 ){
-
-			       
-			       servent_peer_list[s_id][i].reputation_value = 2;
-			       
-			}
-			else if( servent_latency_signal[servent_peer_list[s_id][i].peer_id] == 1 && servent_peer_list[s_id][i].peer_id !=-1 ){
-
-			       
-			       servent_peer_list[s_id][i].reputation_value = 2;
-			       
-			}
-			else if(servent_peer_list[s_id][i].reputation_value <= 2 && servent_peer_list[s_id][i].peer_id !=-1 ){
-
-			       
-			       servent_peer_list[s_id][i].reputation_value = 0;
-			       
-			}
-			   
-			   
-			}
-		
-		}
-		
-		servent_resurrection_request_peer_signal[s_id] = 0;
-		
-		
-		}
 		
 		if(servent_pattern[s_id]!=99){
 		servent_log[s_id][servent_execute_pattern_time[s_id]].num_pattern = servent_pattern[s_id];
@@ -6607,123 +3788,8 @@ void sensor_func(long s_id){
 				
 				servent_pattern[s_id]=99;
 				break;
-			case 1://botmaster_command
-				//file_num=rand()  % 3;
-				file_num=0;//***-
-				switch(file_num){
-				case 0:
-					a=0;
-					b=0;
-					
-					printf("servent %ld receive command%d from relay station:\n",s_id,a+1);
-					while(file_data[a][b][0]!= '\0'){
-					
-					for(i=0;i<servent_command_buffer_pointer[s_id];i++){	
-					
-						command_comparison_result=strcmp(servent_command_buffer[s_id][i].content,file_data[a][b]);
-						if(command_comparison_result== 0){
-						puts(servent_command_buffer[s_id][i].content);
-						break;
-						}
-					}
-					
-					if(command_comparison_result== 0){
-					printf("servent %ld already have (%s)\n",s_id,file_data[a][b]);
-					
-					}
-					if(command_comparison_result != 0){
-					if(servent_command_buffer_pointer[s_id] > 99){
-					servent_command_buffer_pointer[s_id]=0;
-					}
-					strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content,file_data[a][b]);
-					puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content);
-					
-					servent_command_buffer_pointer[s_id]++;
-					servent_command_analysis(s_id,servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
-					}
-					
-					
-					b++;
-					
-					}
-					
-					
-					
-					break;
-				case 1:
-					a=1;
-					b=0;
-					
-					printf("servent %ld receive command%d from relay station:\n",s_id,a+1);
-					while(file_data[a][b][0]!= '\0'){
-					
-					for(i=0;i<servent_command_buffer_pointer[s_id];i++){	
-					command_comparison_result=strcmp(servent_command_buffer[s_id][i].content,file_data[a][b]);
-					if(command_comparison_result== 0){break;}
-					}
-					
-					if(command_comparison_result== 0){
-					printf("servent %ld already have (%s)\n",s_id,file_data[a][b]);
-					
-					}
-					if(command_comparison_result != 0){
-					if(servent_command_buffer_pointer[s_id] > 99){
-					servent_command_buffer_pointer[s_id]=0;
-					}
-					strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content,file_data[a][b]);
-					puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content);
-					
-					servent_command_buffer_pointer[s_id]++;
-					servent_command_analysis(s_id,servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
-					}
-					
-					
-					b++;
-					
-					}
-					
-					
-					
-					break;
-				case 2:
-					a=2;
-					b=0;
-					printf("servent %ld receive command%d from relay station:\n",s_id,a+1);
-					while(file_data[a][b][0]!= '\0'){
-					
-					for(i=0;i<servent_command_buffer_pointer[s_id];i++){	
-					command_comparison_result=strcmp(servent_command_buffer[s_id][i].content,file_data[a][b]);
-					if(command_comparison_result== 0){break;}
-					}
-					
-					if(command_comparison_result== 0){
-					printf("servent %ld already have (%s)\n",s_id,file_data[a][b]);
-					
-					}
-					if(command_comparison_result != 0){
-					if(servent_command_buffer_pointer[s_id] > 99){
-					servent_command_buffer_pointer[s_id]=0;
-					}
-					strcpy(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content,file_data[a][b]);
-					puts(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]].content);
-					servent_command_buffer_pointer[s_id]++;
-					servent_command_analysis(s_id,servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].content);
-					}
-					
-					
-					b++;
-					
-					}
-					
-					
-					break;
-				}
-				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 1;
-				servent_execute_pattern_time[s_id]++;
-				servent_pattern[s_id]=99;
-				
-				break;
-			case 2:
+			
+			case 1:
 				
 				send_target=0;
 				invalid_peer_num = 0;
@@ -6815,12 +3881,6 @@ void sensor_func(long s_id){
 				
 				if(servent_boot_signal[send_target]==0){
 				printf("servent %ld shut down !!! \n",send_target);
-				printf("servent %ld reputation_value--!!! \n",send_target);
-				for ( i = 0; i < servent_peer_num[s_id]; i++) {
-					if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-						servent_peer_list[s_id][i].reputation_value--;
-					}
-				}
 				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 0;
 				servent_execute_pattern_time[s_id]++;
 				servent_pattern[s_id]=99;
@@ -6836,19 +3896,7 @@ void sensor_func(long s_id){
 						vs++;
 				}
 				
-				if(servent_latency_signal[send_target]==1){
-				printf("servent %ld already turn to latency bot !!! \n",send_target);
-				printf("servent %ld reputation_value--!!! \n",send_target);
-				for ( i = 0; i < servent_peer_num[s_id]; i++) {
-					if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-						servent_peer_list[s_id][i].reputation_value--;
-					}
-				}
-				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 0;
-				servent_execute_pattern_time[s_id]++;
-				servent_pattern[s_id]=99;
-				break;
-				}
+				
 				
 				//asdf
 				
@@ -6879,23 +3927,7 @@ void sensor_func(long s_id){
 	     			
 	     			}
 	     			
-	     			if(servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content) == 0 
-	     			//&& servent[send_target].sensor_signal != 1 && servent[send_target].fake_signal != 1
-
-	     			){
-	     			// && enumeration_signal == 1 zxxx
-	     			printf("servent %ld reputation_value--!!! \n",send_target);
-				for ( i = 0; i < servent_peer_num[s_id]; i++) {
-					if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-						servent_peer_list[s_id][i].reputation_value--;
-					}
-				}
-				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 0;
-				servent_execute_pattern_time[s_id]++;
-				servent_pattern[s_id]=99;
-				
-				break;
-	     			}
+	     			
 	     			
 	     			if(servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content) == 1){
 				
@@ -6964,12 +3996,7 @@ void sensor_func(long s_id){
 				
 				servent_rearrange_peer(s_id);   
 				
-				for(i=0;i<servent_peer_num[s_id];i++){	
-				if(servent_peer_list[s_id][i].peer_id ==  send_target && servent_peer_list[s_id][i].reputation_value < reputation_value_max ){
-				servent_peer_list[s_id][i].reputation_value++;
-				break;
-				}
-				}
+				
 				
 				
 					
@@ -6995,7 +4022,7 @@ void sensor_func(long s_id){
 	     			servent_pattern[s_id]=99;
 			 	
 				break;
-			case 3:
+			case 2:
 				
 				send_target=0;
 				invalid_peer_num = 0;
@@ -7094,12 +4121,6 @@ void sensor_func(long s_id){
 				
 				if(servent_boot_signal[send_target]==0){
 				printf("servent %ld shut down !!! \n",send_target);
-				printf("servent %ld reputation_value--!!! \n",send_target);
-				for ( i = 0; i < servent_peer_num[s_id]; i++) {
-					if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-						servent_peer_list[s_id][i].reputation_value--;
-					}
-				}
 				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 0;
 				servent_execute_pattern_time[s_id]++;
 				servent_pattern[s_id]=99;
@@ -7125,19 +4146,7 @@ void sensor_func(long s_id){
 				break;
 				}
 				
-				if(servent_latency_signal[send_target]==1){
-				printf("servent %ld already turn to latency bot !!! \n",send_target);
-				printf("servent %ld reputation_value--!!! \n",send_target);
-				for ( i = 0; i < servent_peer_num[s_id]; i++) {
-					if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-						servent_peer_list[s_id][i].reputation_value--;
-					}
-				}
-				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 0;
-				servent_execute_pattern_time[s_id]++;
-				servent_pattern[s_id]=99;
-				break;
-				}
+				
 				
 				memset(servent_send_message,0,1024);
 				servent_make_command(servent_send_message,servent[s_id].id,servent[send_target].id ,0,"f003");
@@ -7158,23 +4167,7 @@ void sensor_func(long s_id){
 	     			
 	     			}
 	     			
-	     			if(servent_command_analysis(send_target,servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].content) == 0 
-	     			//&& servent[send_target].sensor_signal != 1 && servent[send_target].fake_signal != 1
-
-	     			){
-	     			//&& enumeration_signal == 1 zxxx
-	     			printf("servent %ld reputation_value--!!! \n",send_target);
-				for ( i = 0; i < servent_peer_num[s_id]; i++) {
-					if(servent_peer_list[s_id][i].peer_id == send_target && servent_peer_list[s_id][i].reputation_value > -1 ){
-						servent_peer_list[s_id][i].reputation_value--;
-					}
-				}
-				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 0;
-				servent_execute_pattern_time[s_id]++;
-				servent_pattern[s_id]=99;
-				
-				break;
-	     			}
+	     			
 	     			
 	     			
 	     			peer_comparison_result=0;
@@ -7182,7 +4175,7 @@ void sensor_func(long s_id){
 	
 				if(strcmp(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].command_code ,"f003" )==0 ){
 				
-				char string_ip[100],string_port[100],string_id[100];
+				
 				extra_information_split(servent_command_buffer[send_target][servent_command_buffer_pointer[send_target]-1].extra_information,string_ip,string_port,string_id);
 				send_peer = atoi(string_id);
 				
@@ -7240,7 +4233,23 @@ void sensor_func(long s_id){
 				servent_log[s_id][servent_execute_pattern_time[s_id]].send_peer=send_peer;
 				}
 				//s5s5
+				if(servent[send_target].fake_signal == 1 && peer_comparison_result == 0){
 				
+				if(servent[send_peer].detect_signal == 0 && enumeration_signal == 1 && servent[send_target].fake_signal == 1){
+				
+				servent[send_peer].detect_signal = 1;
+				vc++;
+				} 
+				
+				if(servent[send_peer].request_signal == 0 && enumeration_signal == 1 && servent[send_target].fake_signal == 1){
+		
+				servent[send_peer].request_signal = 1;
+				vs++;
+				}
+				
+				
+				
+				}
 				
 				//------
 				if(servent_command_buffer_pointer[s_id] <= 99){
@@ -7264,58 +4273,42 @@ void sensor_func(long s_id){
 	
 				if(strcmp(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].command_code ,"f004" )==0 ){
 							
-				//ccccc
-				
+				extra_information_split(servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1].extra_information,string_ip,string_port,string_id);
+				send_peer = atoi(string_id);
+				int select_remove=0;
+				select_remove = rand() % 10;
 				for ( i = 0; i < servent_peer_num[s_id]; i++) {	
-				if(servent_peer_list[s_id][i].peer_id == servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id){
-				
-				
-				
-				
-				printf("servent %ld already have servent %d in peer list !\n",s_id,servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id);
-				peer_comparison_result=1;
-				break;
+					if(servent_peer_list[s_id][i].peer_id == send_peer){
+					printf("servent %ld already have servent %d in peer list !\n",s_id,send_peer);
+					peer_comparison_result=1;
+					break;
+					}
+
 				}
-				
-				
-				}
-				if(s_id == servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id){
+				if(s_id == send_peer){
 				printf("servent %ld cant add itself in peer list !\n",s_id);
 				peer_comparison_result=1;
-				
 				}
-				if(servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id == -1){
+				if(send_peer == -1 ){
 				printf("servent %ld cant add invalid peer in peer list !\n",s_id);
 				peer_comparison_result=1;
-				
 				}
+				
 				if(peer_comparison_result == 0 && servent_peer_num[s_id]==NUM_SERVENT_PEER){
 				printf("servent %ld remove servent %d in peer list !\n",s_id,servent_peer_list[s_id][0].peer_id);
-				printf("servent %ld add servent %d in peer list !\n",s_id,servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id);
-				servent_peer_list[s_id][0].peer_id = servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id;
+				printf("servent %ld add servent %d in peer list !\n",s_id,send_peer);
+				servent_peer_list[s_id][0].peer_id = send_peer;
 				servent_peer_list[s_id][0].reputation_value = reputation_value_base;
-
-				
-				
-				
 				}
 				if(peer_comparison_result == 0 && servent_peer_num[s_id] < NUM_SERVENT_PEER  ){
 				//printf("servent %ld remove servent %d in peer list !\n",s_id,servent_peer_list[s_id][0].peer_id);
-				printf("servent %ld add servent %d in peer list !\n",s_id,servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id);
-				servent_peer_list[s_id][servent_peer_num[s_id]].peer_id = servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id;
+				printf("servent %ld add servent %d in peer list !\n",s_id,send_peer);
+				servent_peer_list[s_id][servent_peer_num[s_id]].peer_id = send_peer;
 				servent_peer_list[s_id][servent_peer_num[s_id]].reputation_value = reputation_value_base;
-
 				servent_peer_num[s_id]++;
-				
-				
-								
-				
 				}
-				if(servent_log[s_id][servent_execute_pattern_time[s_id]].num_pattern == 3 && peer_comparison_result == 0 
-				&& (servent[send_target].fake_signal != 1 && servent[send_target].sensor_signal != 1)){
-				servent_log[s_id][servent_execute_pattern_time[s_id]].receive_peer=servent_peer_list[send_target][servent_peer_num[send_target]-1].peer_id;
 				
-				}
+				
 				
 				
 				
@@ -7325,12 +4318,7 @@ void sensor_func(long s_id){
 				
 				servent_rearrange_peer(s_id);   
 				
-				for(i=0;i<servent_peer_num[s_id];i++){	
-				if(servent_peer_list[s_id][i].peer_id ==  send_target && servent_peer_list[s_id][i].reputation_value < reputation_value_max ){
-				servent_peer_list[s_id][i].reputation_value++;
-				break;
-				}
-				}
+				
 				
 				
 					
@@ -7353,146 +4341,7 @@ void sensor_func(long s_id){
 	     			servent_pattern[s_id]=99;
 				break;	
 				
-			case 4:	
-			        send_target=0;
-				invalid_peer_num = 0;
-				if(servent_already_execute_resurrection_signal[s_id] == 1){
-				for(i=0;i<NUM_SERVENT_PEER;i++){
-				if(servent_peer_list[s_id][i].peer_id != -1 && servent_eliminate_signal[servent_peer_list[s_id][i].peer_id] == 1){
-				servent_peer_list[s_id][i].peer_id = -1;
-				servent_peer_list[s_id][i].reputation_value = 0;
-				//servent_peer_list[s_id][i].sensor_signal = 0;
-				
-				}
-				   
-				}
-				}
-				servent_peer_num[s_id]=0;
-				for(i=0;i<NUM_SERVENT_PEER;i++){
-				
-				if(servent_peer_list[s_id][i].peer_id!= -1)
-				servent_peer_num[s_id]++;
-					
-				} 
-				
-				if(servent_peer_num[s_id]==0){
-				printf("servent %ld doesnt has peer !!! \n",s_id);
-				servent_pattern[s_id]=99;
-				break;
-				}
-				
-				for(i=0;i<NUM_SERVENT_PEER;i++){
-				if(servent_peer_list[s_id][i].peer_id != -1 ){
-				if(servent_peer_list[s_id][i].reputation_value == -1 || servent_peer_list[s_id][i].trust_signal == 1 ){//|| servent_boot_signal[servent_peer_list[s_id][i].peer_id] == 0
-				invalid_peer_num++;
-				}  
-				}  
-				if(invalid_peer_num >= NUM_SERVENT_PEER){
-				break;
-				}
-				
-				}
-				if(invalid_peer_num >= NUM_SERVENT_PEER){
-				printf("servent %ld doesnt has peer can communicate !!! \n",s_id);
-				servent_pattern[s_id]=99;
-				break;
-				}
-				servent_rearrange_peer(s_id);
-				servent_sort_peer(s_id);
-				
-				/*for ( i = servent_peer_num[s_id]-1; i >= 0 ; i--) {
-					if(servent_peer_list[s_id][i].reputation_value != 5 && servent_peer_list[s_id][i].reputation_value != -1 ){
-						send_target = servent_peer_list[s_id][i].peer_id;
-								
-						break;
-					}
-							
-				}*/
-				if(servent_peer_num[s_id] != 0){
-				peer_num = servent_peer_num[s_id];
-				send_target = servent_peer_list[s_id][rand() % (peer_num)].peer_id;
-				
-				for ( i = 0; i < servent_peer_num[s_id]; i++) {
-				
-				if(servent_peer_list[s_id][i].peer_id == send_target){
-				j=i;
-				while(servent_peer_list[s_id][j].reputation_value == -1 || servent_peer_list[s_id][j].trust_signal == 1 ){//|| servent_boot_signal[servent_peer_list[s_id][j].peer_id] == 0
-				
-					
-		
-				send_target = servent_peer_list[s_id][rand() % (peer_num)].peer_id;
-				
-				for ( j = 0; j < servent_peer_num[s_id]; j++) {
-				if(servent_peer_list[s_id][j].peer_id == send_target){
-				break;
-				}
-				}
-				
-				i = 0;    
-				
-				}
-				
-				}
-				
-				}
-				
-				}
-				/*
-				if(servent[send_target].sensor_signal == 1 ){
-						request_time++;
-				}
-
-				if(servent[send_target].sensor_signal == 1 && servent[s_id].request_signal == 0 && enumeration_signal == 1){
-						servent[s_id].request_signal = 1;
-						vs++;
-				}*/
-				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_target = send_target;
-				if(servent_latency_signal[send_target]==1){
-				printf("servent %ld already turn to latency bot !!! \n",send_target);
-				
-				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 0;
-				servent_execute_pattern_time[s_id]++;
-				servent_pattern[s_id]=99;
-				break;
-				}
-				
-				if(servent_boot_signal[send_target]==0){
-				printf("servent %ld shut down !!! \n",send_target);
-				
-				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 0;
-				servent_execute_pattern_time[s_id]++;
-				servent_pattern[s_id]=99;
-				break;
-				}
-				
-				
-				
-				b=0;
-				
-				printf("website from servent %ld:\n",send_target);
-				while(servent_bot_website_buffer[send_target][b].url[0]!= '\0'){
-							
-				for(i=0;i<servent_bot_website_buffer_pointer[s_id];i++){	
-				website_comparison_result=strcmp(servent_bot_website_buffer[s_id][i].url,servent_bot_website_buffer[send_target][b].url);
-				if(website_comparison_result== 0){break;}
-				}
-							
-				if(website_comparison_result== 0){
-				printf("servent %ld already have (%s)\n",s_id,servent_bot_website_buffer[send_target][b].url);
-				}
-				if(website_comparison_result != 0){
-				strcpy(servent_bot_website_buffer[s_id][servent_bot_website_buffer_pointer[s_id]].url,servent_bot_website_buffer[send_target][b].url);
-				servent_bot_website_buffer[s_id][servent_bot_website_buffer_pointer[s_id]].reputation_value = servent_bot_website_buffer[send_target][b].reputation_value ;
-				
-				puts(servent_bot_website_buffer[s_id][servent_bot_website_buffer_pointer[s_id]].url);
-				servent_bot_website_buffer_pointer[s_id]++;
-				}				
-				b++;			
-				}
-				servent_log[s_id][servent_execute_pattern_time[s_id]].communication_result = 1;
-				servent_execute_pattern_time[s_id]++;
-	     			servent_pattern[s_id]=99;
-				break;	
+			
 			
 			case (-1):
 				printf(" servent %ld terminated !\n", s_id);
@@ -7608,7 +4457,7 @@ void sensor_func(long s_id){
 			}
 			
 			
-			if(delete_command_signal == 1){
+			/*if(delete_command_signal == 1){
 			//printf("delete_command_signal[%ld] %d  !\n", s_id,delete_command_signal);
 			Command temp = servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1];
 			servent_command_buffer[s_id][servent_command_buffer_pointer[s_id]-1] = servent_command_buffer[s_id][i];
@@ -7616,7 +4465,7 @@ void sensor_func(long s_id){
 		        
 		        memset(&servent_command_buffer[s_id][i],0,sizeof(Command));
 			servent_command_buffer_pointer[s_id]--;
-			}
+			}*/
 			
 		}
 		
@@ -7839,7 +4688,7 @@ void init_client_master(int c_id){
     if(servent_bot_num_now < NUM_SERVENT_BOTS){
     limit = servent_thread_num_now*50;
     }*/
-    limit = 5000;
+    limit = 20000;
     
     for (j = 0; j < NUM_SERVENT_PEER; j++) {//***- NUM_SERVENT_BOTS
     
@@ -7909,7 +4758,7 @@ void init_fake_servent_and_sensor_peer_list(){
     if(servent_bot_num_now < 5000){
     limit = servent_thread_num_now*50;
     }*/
-    limit = 5000;
+    limit = 20000;
     for (i = NUM_SERVENT_BOTS; i < NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS; i++){
     servent[i].detect_signal = 1;
     servent[i].detect_and_reply_signal = 1;
@@ -8063,7 +4912,7 @@ void init_servent_peer_list(int s_id){
     limit=50;
     }
     else if(i>50){
-    limit=5000;
+    limit=20000;
     }
     
 
@@ -8316,78 +5165,7 @@ void *relay_station_func(){
 	    }
 	    
 	    
-	    if(now_sec > enumeration_start_time ){
-            
-	    if((now_sec-enumeration_start_time) >= (NUM_OF_SELECT_PATTERN_TIMES*6) && enumeration_start_time != 0){
-	    write_botmaster_command_signal = 1;
 	    
-	    }
-	    }
-	    else if(now_sec < enumeration_start_time ){
-	    
-	    if((now_sec+(86400-enumeration_start_time) ) >= (NUM_OF_SELECT_PATTERN_TIMES*6) && enumeration_start_time != 0){
-	    write_botmaster_command_signal = 1;
-	    
-	    }
-	    }
-	    if(write_botmaster_command_signal == 1 && write_botmaster_command_time == 0){
-	    write_botmaster_command_time=1;
-	    
-	    for(i=0;i<NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS+NUM_SENSOR;i++){
-	    //printf("servent %ld\n",i);
-	    strcpy(servent_command_buffer[i][servent_command_buffer_pointer[i]].content,"f007;;9999;9999;2022.10.29.86400;7200");
-	    puts(servent_command_buffer[i][servent_command_buffer_pointer[i]].content);
-	    servent_command_buffer_pointer[i]++;
-	    servent_command_analysis(i,servent_command_buffer[i][servent_command_buffer_pointer[i]-1].content);
-	    }
-	    
-	    for(i=0,f=1;i<3,f<=3;i++,f++){
-	    
-		    
-		    if(f==1){
-		    sprintf(path, "command%d.txt", f); 
-		    file = fopen(path, "w");
-		    if(!f){
-			printf("data not exist");
-			system("PAUSE");
-			pthread_exit(NULL);
-		    }
-		    strcpy(write_data,"f007;;9999;9999;2022.10.29.86400;7200");
-		    fwrite( write_data, 1,strlen(write_data), file );
-    		    //puts(write_data);
-    		    fclose(file);
-		    }
-		    if(f==2){
-		    sprintf(path, "command%d.txt", f); 
-		    file = fopen(path, "w");
-		    if(!f){
-			printf("data not exist");
-			system("PAUSE");
-			pthread_exit(NULL);
-		    }
-		     
-		    strcpy(write_data,"[][f007][9999][9999][2022.10.29.86400][7200]");
-		    fwrite( write_data, 1,strlen(write_data), file );
-    		    //puts(write_data);
-    		    fclose(file);
-		    }
-		    if(f==3){
-		    sprintf(path, "command%d.txt", f); 
-		    file = fopen(path, "w");
-		    if(!f){
-			printf("data not exist");
-			system("PAUSE");
-			pthread_exit(NULL);
-		    }
-		    strcpy(write_data,"2022.10.29.86400||7200||||f007||9999||9999");
-		    fwrite( write_data, 1,strlen(write_data), file );
-    		    //puts(write_data);
-    		    fclose(file);
-		    }
-		    
-		    
-	    }    
-	    }
 	    if(time_counter == 5){
 
 		    for(i=0,f=1;i<3,f<=3;i++,f++){
@@ -8427,7 +5205,7 @@ void *relay_station_func(){
 	
 }
 void *data_record_func(){
-    int record_times=0,last_time_record=0;
+    int record_times=1,last_time_record=0;
     char record_data[1024];
     int now_hour,now_min,now_sec1;
     char string_now_hour[1024],string_now_min[1024],string_now_sec[1024];
@@ -8734,129 +5512,12 @@ void *infect_and_inject_enumeration_thread_func(){
 		
 	sleep(1);
 	}*/
-	
+	//zzzz
 	printf("inject start !\n");
 	inject_signal=1;
 	init_fake_servent_and_sensor_peer_list();
 	int probability=0;
-	for(k=0;k<NUM_SERVENT_BOTS;k++){
-		probability = rand() % 10;
-		for(i=0;i<NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS+NUM_SENSOR;i++){
-				for (j = 0; j < NUM_SERVENT_PEER; j++){
-					if(servent[servent_peer_list[i][j].peer_id].sensor_signal != 1 && servent[servent_peer_list[i][j].peer_id].fake_signal != 1 ){
-						if( servent_peer_list[i][j].peer_id == k && probability>=0 && probability<=1){
-					   	servent_peer_list[i][j].reputation_value = 5;
-					   	}
-					   	if( servent_peer_list[i][j].peer_id == k && probability>=2 && probability<=3){
-					   	servent_peer_list[i][j].reputation_value = 4;
-					   	}
-					   	if( servent_peer_list[i][j].peer_id == k && probability>=4 && probability<=5){
-					   	servent_peer_list[i][j].reputation_value = 3;
-					   	}
-					   	if( servent_peer_list[i][j].peer_id == k && probability>=6 && probability<=7){
-					   	servent_peer_list[i][j].reputation_value = 2;
-					   	}
-					   	if( servent_peer_list[i][j].peer_id == k && probability>=8 && probability<=8){
-					   	servent_peer_list[i][j].reputation_value = 1;
-					   	}
-					   	if( servent_peer_list[i][j].peer_id == k && probability>=9 && probability<=9){
-					   	servent_peer_list[i][j].reputation_value = 0;
-					   	}
-					}
-					
-					
-					
-				}
-		}
-		for(i=0;i<NUM_CLIENT_BOTS;i++){
-				for (j = 0; j < NUM_SERVENT_PEER; j++){
-					if(servent[client_master[i][j].master_id].sensor_signal != 1 && servent[client_master[i][j].master_id].fake_signal != 1){
-						if( client_master[i][j].master_id == k && probability>=0 && probability<=1){
-					   	client_master[i][j].reputation_value = 5;
-					   	}
-					   	if( client_master[i][j].master_id == k && probability>=2 && probability<=3){
-					   	client_master[i][j].reputation_value = 4;
-					   	}
-					   	if( client_master[i][j].master_id == k && probability>=4 && probability<=5){
-					   	client_master[i][j].reputation_value = 3;
-					   	}
-					   	if( client_master[i][j].master_id == k && probability>=6 && probability<=7){
-					   	client_master[i][j].reputation_value = 2;
-					   	}
-					   	if( client_master[i][j].master_id == k && probability>=8 && probability<=8){
-					   	client_master[i][j].reputation_value = 1;
-					   	}
-					   	if( client_master[i][j].master_id == k && probability>=9 && probability<=9){
-					   	client_master[i][j].reputation_value = 0;
-					   	}
-					}
-					
-				
-				
-				
-				}
-		}
-	}
-	k=0;
-	for(k=NUM_SERVENT_BOTS;k<NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS+NUM_SENSOR;k++){
-		probability = rand() % 10;
-		for(i=0;i<NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS+NUM_SENSOR;i++){
-				for (j = 0; j < NUM_SERVENT_PEER; j++){
-					
-					if( servent_peer_list[i][j].peer_id == k && probability>=0 && probability<=0){
-				   	servent_peer_list[i][j].reputation_value = 5;
-				   	}
-				   	if( servent_peer_list[i][j].peer_id == k && probability>=1 && probability<=1){
-				   	servent_peer_list[i][j].reputation_value = 4;
-				   	}
-				   	if( servent_peer_list[i][j].peer_id == k && probability>=2 && probability<=2){
-				   	servent_peer_list[i][j].reputation_value = 3;
-				   	}
-				   	if( servent_peer_list[i][j].peer_id == k && probability>=3 && probability<=4){
-				   	servent_peer_list[i][j].reputation_value = 2;
-				   	}
-				   	if( servent_peer_list[i][j].peer_id == k && probability>=5 && probability<=7){
-				   	servent_peer_list[i][j].reputation_value = 1;
-				   	}
-				   	if( servent_peer_list[i][j].peer_id == k && probability>=8 && probability<=8){
-				   	servent_peer_list[i][j].reputation_value = 0;
-				   	}
-				   	if( servent_peer_list[i][j].peer_id == k && probability>=9 && probability<=9){
-				   	servent_peer_list[i][j].reputation_value = -1;
-				   	}
-					
-					
-				}
-		}
-		for(i=0;i<NUM_CLIENT_BOTS;i++){
-				for (j = 0; j < NUM_SERVENT_PEER; j++){
-					if( client_master[i][j].master_id == k && probability>=0 && probability<=0){
-				   	client_master[i][j].reputation_value = 5;
-				   	}
-				   	if( client_master[i][j].master_id == k && probability>=1 && probability<=1){
-				   	client_master[i][j].reputation_value = 4;
-				   	}
-				   	if( client_master[i][j].master_id == k && probability>=2 && probability<=2){
-				   	client_master[i][j].reputation_value = 3;
-				   	}
-				   	if( client_master[i][j].master_id == k && probability>=3 && probability<=4){
-				   	client_master[i][j].reputation_value = 2;
-				   	}
-				   	if( client_master[i][j].master_id == k && probability>=5 && probability<=7){
-				   	client_master[i][j].reputation_value = 1;
-				   	}
-				   	if( client_master[i][j].master_id == k && probability>=8 && probability<=8){
-				   	client_master[i][j].reputation_value = 0;
-				   	}
-				   	if( client_master[i][j].master_id == k && probability>=9 && probability<=9){
-				   	client_master[i][j].reputation_value = -1;
-				   	}
-				
-				
-				
-				}
-		}
-	}
+	
 	for(i=0;i<NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS+NUM_SENSOR;i++){
 				    
 		
@@ -9299,209 +5960,7 @@ void *infect_and_inject_enumeration_thread_func(){
 	
 	*/
 	
-	for(i=0;i<NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS+NUM_SENSOR;i++){
-				request_time[i]=0;
-		}
-	request_time_largest = 0;   	
 	
-	time(&current);
-	info = localtime( &current );
-		
-	strftime(string_now_hour,sizeof(string_now_hour),"%H",info);
-	now_hour = atoi(string_now_hour);	
-	strftime(string_now_min,sizeof(string_now_min),"%M",info);
-	now_min = atoi(string_now_min);	
-	strftime(string_now_sec,sizeof(string_now_sec),"%S",info);
-	now_sec = atoi(string_now_sec);	
-	now_sec+=(60*now_min)+(60*60*now_hour);
-	
-	request_time_last_record_time = now_sec;
-	printf(" request_time_last_record_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
-	enumeration_signal = 0;
-	all_servent_try_to_turn_latency_signal = 1;
-	while(request_time_record_terminate_signal != 1 && enumeration_signal != 1){
-	//zzzz
-	time(&current);
-	info = localtime( &current );
-		
-	strftime(string_now_hour,sizeof(string_now_hour),"%H",info);
-	now_hour = atoi(string_now_hour);	
-	strftime(string_now_min,sizeof(string_now_min),"%M",info);
-	now_min = atoi(string_now_min);	
-	strftime(string_now_sec,sizeof(string_now_sec),"%S",info);
-	now_sec = atoi(string_now_sec);	
-	now_sec+=(60*now_min)+(60*60*now_hour);
-	servent_latency_num_temp=0;
-        crawler_latency_num_temp=0;
-        sensor_latency_num_temp=0;
-    	for(i=0;i<NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS+NUM_SENSOR;i++){
-				    
-		if(servent_eliminate_signal[i] != 1 && servent_latency_signal[i] == 1 && servent[i].fake_signal != 1 && servent[i].sensor_signal != 1){  
-			servent_latency_num_temp++;		
-		}
-		else if(servent_eliminate_signal[i] != 1 && servent_latency_signal[i] == 1 && servent[i].fake_signal == 1 && servent[i].sensor_signal != 1){  
-			crawler_latency_num_temp++;		
-		}
-		else if(servent_eliminate_signal[i] != 1 && servent_latency_signal[i] == 1 && servent[i].fake_signal != 1 && servent[i].sensor_signal == 1){  
-			sensor_latency_num_temp++;		
-		}
-	}
-	for(i=0;i<NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS+NUM_SENSOR;i++){
-		if(request_time[i] > request_time_largest){
-			request_time_largest = request_time[i];
-		}
-	}
-	
-	//printf(" now_time %s:%s:%s now_sec %d!\n",string_now_hour,string_now_min,string_now_sec,now_sec); 
-	if(now_sec > request_time_last_record_time ){
-	
-	if((now_sec - request_time_last_record_time ) >= (NUM_OF_SELECT_PATTERN_TIMES*2) ){//
-	request_hour++;
-	
-	printf("request_time_largest:%d !\n",request_time_largest);
-	request_time_record_array[request_time_record_pointer] = request_time_largest;
-	request_time_record_pointer++;
-	/*sprintf(record_data, "request_time.%d:now_sec.%d !\n",request_time ,now_sec  );
-	puts(record_data);
-	fwrite( record_data, 1,strlen(record_data), f );*/
-	
-	if(request_time_largest >= 1000 && all_servent_try_to_turn_latency_signal == 1 && request_time_record_pointer > 26){//
-	enumeration_signal = 1;
-	printf("enumeration_start !!!!!!!!!!!!!!!\n");
-	}
-	else if(request_time_largest >= 1000 && all_servent_try_to_turn_latency_signal == 0){
-		printf("request_time_last_record_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
-		request_time_last_record_time = now_sec;
-		request_time_largest=0;
-		for(i=0;i<NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS+NUM_SENSOR;i++){
-				request_time[i]=0;
-		}
-		/*for (i = 0; i < NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS+NUM_SENSOR; i++) {
-			if(servent_latency_signal[i] == 0){
-				probability = rand() % 10;
-				if(probability>=1 && probability<=2){
-					servent_latency_signal[i] = 1;
-					servent_trust_threshold[i]=0;
-					servent_already_turn_to_latency_signal[i]=1;
-				}
-			}
-		
-		}
-		for(i=0;i<NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS+NUM_SENSOR;i++){
-			for (j = 0; j < NUM_SERVENT_PEER; j++){
-				
-				if( servent_peer_list[i][j].peer_id != -1 && servent_latency_signal[servent_peer_list[i][j].peer_id] == 1){//
-			   	servent_peer_list[i][j].reputation_value = 5;
-
-			   	}
-				
-				
-			}
-	   	}*/
-	   	
-	   	
-	   	
-   		all_servent_try_to_turn_latency_signal = 1;
-	}
-	else if(request_time_largest < 1000 && request_time_record_pointer > 26){
-	request_time_record_array[request_time_record_pointer] = 1001;
-	enumeration_signal = 1;
-	printf("enumeration_start !!!!!!!!!!!!!!!\n");
-	}
-	else if(request_time_largest < 1000){
-	printf("request_time_last_record_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
-	request_time_last_record_time = now_sec;	
-	request_time_largest=0;
-		for(i=0;i<NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS+NUM_SENSOR;i++){
-				request_time[i]=0;
-		}
-	
-	
-	}
-	latency_num_record_array[latency_num_record_pointer].servent_latency_num=servent_latency_num_temp;
-	latency_num_record_array[latency_num_record_pointer].crawler_latency_num=crawler_latency_num_temp;
-	latency_num_record_array[latency_num_record_pointer].sensor_latency_num=sensor_latency_num_temp;
-	latency_num_record_pointer++;
-	
-	}
-	
-	}
-	
-	else if(now_sec < request_time_last_record_time ){
-	
-	if((now_sec+(86400-request_time_last_record_time) ) >= (NUM_OF_SELECT_PATTERN_TIMES*2)  ){
-	request_hour++;
-	printf("request_time_largest:%d !\n",request_time_largest);
-	request_time_record_array[request_time_record_pointer] = request_time_largest;
-	request_time_record_pointer++;
-	/*sprintf(record_data, "request_time.%d:now_sec.%d !\n",request_time ,now_sec  );
-	puts(record_data);
-	fwrite( record_data, 1,strlen(record_data), f );*/
-	if(request_time_largest >= 1000 && all_servent_try_to_turn_latency_signal == 1 && request_time_record_pointer > 26){//
-	enumeration_signal = 1;
-	printf("enumeration_start !!!!!!!!!!!!!!!\n");
-	}
-	else if(request_time_largest >= 1000 && all_servent_try_to_turn_latency_signal == 0){
-		
-		printf("request_time_last_record_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
-		request_time_last_record_time = now_sec;
-		request_time_largest=0;
-		for(i=0;i<NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS+NUM_SENSOR;i++){
-				request_time[i]=0;
-		}
-		/*for (i = 0; i < NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS+NUM_SENSOR; i++) {
-			if(servent_latency_signal[i] == 0){
-				probability = rand() % 10;
-				if(probability>=1 && probability<=2){
-					servent_latency_signal[i] = 1;
-					servent_trust_threshold[i]=0;
-					servent_already_turn_to_latency_signal[i]=1;
-				}
-			}
-		
-		}
-		
-		for(i=0;i<NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS+NUM_SENSOR;i++){
-			for (j = 0; j < NUM_SERVENT_PEER; j++){
-				
-				if( servent_peer_list[i][j].peer_id != -1 && servent_latency_signal[servent_peer_list[i][j].peer_id] == 1){//
-			   	servent_peer_list[i][j].reputation_value = 5;
-
-			   	}
-				
-				
-			}
-	   	}*/
-	   	
-   		all_servent_try_to_turn_latency_signal = 1;
-	}
-	else if(request_time_largest < 1000 && request_time_record_pointer > 26){
-	
-	request_time_record_array[request_time_record_pointer] = 1001;
-	enumeration_signal = 1;
-	printf("enumeration_start !!!!!!!!!!!!!!!\n");
-
-	}
-	else if(request_time_largest < 1000){
-	printf("request_time_last_record_time %s:%s:%s !\n",string_now_hour,string_now_min,string_now_sec);
-	request_time_last_record_time = now_sec;
-	request_time_largest=0;
-		for(i=0;i<NUM_SERVENT_BOTS+NUM_FAKE_SERVENT_BOTS+NUM_SENSOR;i++){
-				request_time[i]=0;
-		}
-	}
-	latency_num_record_array[latency_num_record_pointer].servent_latency_num=servent_latency_num_temp;
-	latency_num_record_array[latency_num_record_pointer].crawler_latency_num=crawler_latency_num_temp;
-	latency_num_record_array[latency_num_record_pointer].sensor_latency_num=sensor_latency_num_temp;
-	latency_num_record_pointer++;
-	
-	}
-	
-	}
-	
-	
-	sleep(1);
-	}
 	
 	
 	
@@ -9873,7 +6332,7 @@ void *infect_and_inject_enumeration_thread_func(){
 	fwrite( record_data, 1,strlen(record_data), f );
 	fclose(f);
 	
-	
+	enumeration_signal = 1;
 	time(&current);
 	info = localtime( &current );
 		
@@ -9957,11 +6416,11 @@ void *boot_control_func(){
 		    
 		}
     	device[random_PC_ID].servent_or_client = 1;// servent = 1 client = 0
-    	device[random_PC_ID].bot_ID =  rand() % 5000;
+    	device[random_PC_ID].bot_ID =  rand() % 20000;
     		for(j=0;j<i;j++){
 		    	
 			while(device[random_PC_ID].bot_ID == already_register_servent[j]){
-			device[random_PC_ID].bot_ID = rand() % 5000;
+			device[random_PC_ID].bot_ID = rand() % 20000;
 			j=0;
 			}
 		    
@@ -9972,7 +6431,7 @@ void *boot_control_func(){
     	already_register_PC_num++;
     	}
     	
-    	for (i = 0 ; i < NUM_CLIENT_BOTS ; i++) {
+    	/*for (i = 0 ; i < NUM_CLIENT_BOTS ; i++) {
     	random_PC_ID = rand() % 100000;
     		for(j=0;j<already_register_PC_num;j++){
 		    	
@@ -9996,7 +6455,7 @@ void *boot_control_func(){
     	already_register_client[i] = device[random_PC_ID].bot_ID;
     	already_register_PC[already_register_PC_num] = random_PC_ID;
     	already_register_PC_num++;
-    	}
+    	}*/
     	
     	
     	/*f = fopen("PC_record.txt", "w");
@@ -10231,9 +6690,7 @@ void *boot_control_func(){
 	}*/
 	
 	
-	for (i = 0 ; i < static_client_boot_num ; i++) {
-		client_boot_signal[static_client_boot_id[i]]=1;	
-	}
+	
 	/*for (i = 0 ; i < dynamic_client_boot_num ; i++) {
 		client_boot_signal[dynamic_client_boot_id[dynamic_pointer][i]]=1;	
 	}*/
@@ -10325,9 +6782,7 @@ void *boot_control_func(){
 		}
 
 		
-		for (i = 0 ; i < static_client_boot_num ; i++) {
-			client_boot_signal[static_client_boot_id[i]]=1;	
-		}
+		
 		change_period_time[change_period_time_pointer].start_time = now_sec;
 		change_period_time[change_period_time_pointer].end_time = now_sec;
 		change_period_time[change_period_time_pointer].peak_to_off_peak = 1;
@@ -10371,13 +6826,7 @@ void *boot_control_func(){
 		}
 		
 		
-		for (i = 0 ; i < static_client_boot_num ; i++) {
-			client_boot_signal[static_client_boot_id[i]]=1;	
-
-		}
-		for (i = 0 ; i < dynamic_client_boot_num[dynamic_pointer] ; i++) {
-			client_boot_signal[dynamic_client_boot_id[dynamic_pointer][i]]=1;	
-		}
+		
 		time(&current);
 		info = localtime( &current );
 			
@@ -10531,7 +6980,7 @@ int main() {
     	servent_execute_pattern_time[i]=0;
     	servent_pattern[i]=99;
         servent_command_buffer_pointer[i]=0;
-        servent_boot_signal[i]=0;
+        servent_boot_signal[i]=1;
         servent_bot_website_buffer_pointer[i]=0;
         servent_send_trust_message_to_me_pointer[i]=0;
         servent_trust_threshold[i]=0;
@@ -10570,7 +7019,7 @@ int main() {
      	client_execute_pattern_time[i]=0;
     	client_pattern[i]=99;
         client_command_buffer_pointer[i]=0;
-        client_boot_signal[i]=0;
+        client_boot_signal[i]=1;
         client_bot_website_buffer_pointer[i]=0;
         client_eliminate_signal[i]=0;
         client_exchange_servent_target[i]=0;
@@ -10607,12 +7056,10 @@ int main() {
 
     init_servent_and_client_information();
     init_servent_website();
-    for (i = 0; i < 4800; i++) {
+    for (i = 0; i < 19800; i++) {
     init_servent_peer_list(i);
     }
-    for (i = 0; i < 15000; i++) {
-    init_client_master(i);
-    }
+   
     
     
     
@@ -10667,8 +7114,8 @@ int main() {
 				}*/ 							
     
     
-    servent_thread_num_now = 100;
-    client_thread_num_now = 300;
+    
+
     
     pthread_attr_init(&attr);       
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); 
@@ -10706,16 +7153,7 @@ int main() {
     
     
     
-    pthread_attr_init(&attr);       
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); 
-     for (i = 0; i < (15000/50); i++) {  // /1000
- 	rc = pthread_create(&client_threads[i], &attr, client_thread_func, (void *)i);
-        
-        if (rc) {
-				    printf("ERORR; return code from pthread_create() is %s\n", strerror(rc));
-				    exit(EXIT_FAILURE);
-	}
-     }
+    
     
  
     
@@ -10759,20 +7197,31 @@ int main() {
 				//servent_pattern[NUM_SERVENT_BOTS]=2;
 				
 				//sleep(2);
-				i=4900;
-				servent_pattern[i]=3;
+				/*for (i = 0; i < (10); i++) {
+				client_master[3000][i].master_id = 4800+i;
+				}*/
+				for (i = 0; i < (10); i++) {
+
 				
+				servent_peer_list[4900][i].peer_id = 4801+i;
+				
+				}
 				break;				
 			case 3:
 				
 				//servent_pattern[0]=3;	
 				//client_pattern[0]=3;
-				for (i = 0; i < (NUM_SERVENT_BOTS); i++) {
-				servent_pattern[i]=2;
-				}
+				
+				/*for (i = 0; i < (10); i++) {
+				client_master[3000][i].master_id = 4900+i;
+				}*/
 				//servent_pattern[NUM_SERVENT_BOTS]=3;
 				//sleep(2);
-					
+				for (i = 0; i < (10); i++) {
+				
+				servent_peer_list[4900][i].peer_id = 4901+i;
+				
+				}	
 				break;
 			case 4:
 				/*for (i = 0; i < (5); i++) {
@@ -10806,7 +7255,14 @@ int main() {
 				client_master[3001][i].master_id = 4800+i;
 				}*/
 				
-				i=3000;
+				/*i=3000;
+				printf("peer list of client %ld have:\n", i);
+				for ( j = 0; j < 10; j++) {
+				if(client_master[i][j].master_id!= -1 ){
+				printf("id:%d value:%d\n",client_master[i][j].master_id, client_master[i][j].reputation_value);
+				}
+				
+				}*/
 				/*for (j = 0; j < 5; j++) {
 				servent_peer_list[i][j].reputation_value = j+1;
 				}
@@ -10821,7 +7277,7 @@ int main() {
 				}
 				
 				}*/
-				i=4900;
+				i=3000;
 				/*for ( j = 0; j < 10; j++) {
 				if(servent_peer_list[i][j].peer_id != -1 && servent_peer_list[i][j].reputation_value == 5){
 				servent_peer_list[i][j].reputation_value--;
@@ -10836,6 +7292,7 @@ int main() {
 				}
 				
 				}
+				
 				break;	
 			case 5:
 				
@@ -10852,8 +7309,8 @@ int main() {
 				printf("id:%d value:%d\n",client_master[i][j].master_id, client_master[i][j].reputation_value);
 				}
 				
-				}
-				*/
+				}*/
+				
 				i=4900;
 				servent_peer_list[i][2].reputation_value = 5;
 				printf("peer list of servent %ld have:\n", i);
